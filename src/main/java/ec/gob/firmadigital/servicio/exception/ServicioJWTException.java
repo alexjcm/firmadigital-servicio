@@ -1,5 +1,6 @@
 /*
  * Firma Digital: Servicio
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,23 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ec.gob.firmadigital.servicio.exception;
 
-import java.net.URISyntaxException;
+/**
+ * Excepcion lanzada en caso de problemas en el estándar JWT.
+ *
+ * @author Misael Fernández
+ */
 
-public class ProtocoloInvalidoException extends Exception {
+public class ServicioJWTException extends Exception {
 
-    private static final long serialVersionUID = 6491132940384665796L;
+    private static final long serialVersionUID = 5869629673463604058L;
 
-    public ProtocoloInvalidoException(String message) {
+    public ServicioJWTException() {
+        super();
+    }
+
+    public ServicioJWTException(String message) {
         super(message);
-    }
-
-    public ProtocoloInvalidoException(String message, URISyntaxException e) {
-        super(message, e);
-    }
-
-    public ProtocoloInvalidoException(URISyntaxException e) {
-        super(e);
     }
 }

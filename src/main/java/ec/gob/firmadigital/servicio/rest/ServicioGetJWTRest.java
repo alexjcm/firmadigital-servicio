@@ -16,13 +16,14 @@
  */
 package ec.gob.firmadigital.servicio.rest;
 
-import ec.gob.firmadigital.servicio.ServicioVersion;
+import ec.gob.firmadigital.servicio.ServicioJWT;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
+import ec.gob.firmadigital.servicio.util.UtilsJson;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -32,29 +33,35 @@ import jakarta.json.JsonReader;
 import jakarta.json.stream.JsonParsingException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 
 /**
- * Servicio REST para verificar Versión.
+ * Servicio REST para Estándar JWT.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Misael Fernández
  */
 @Stateless
-@Path("/version")
-public class ServicioVersionRest {
+@Path("/getjwt")
+public class ServicioGetJWTRest {
 
     @EJB
-    private ServicioVersion servicioVersion;
+    private ServicioJWT servicioJWT;
+
+    private static final String API_KEY_HEADER_PARAMETER = "X-API-KEY";
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_PLAIN)
-    public String buscarVersion(@FormParam("base64") String base64) {
+    public String getJWT(@HeaderParam(API_KEY_HEADER_PARAMETER) String apiKey, @FormParam("base64") String base64) {
+
+        if (apiKey == null) {
+            return "Se debe incluir un apiKey";
+        }
+
         if (base64 == null || base64.isEmpty()) {
             return "Se debe generar en Base64";
         }
-//        logger.info("base64=" + base64);
         String jsonParameter;
         try {
             jsonParameter = new String(Base64.getDecoder().decode(base64));
@@ -63,7 +70,7 @@ public class ServicioVersionRest {
         }
 
         if (jsonParameter == null || jsonParameter.isEmpty()) {
-            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion,versionApp y sha";
+            return "Se debe incluir JSON con los parámetros: sistemaTransversal";
         }
 
         jakarta.json.JsonObject json;
@@ -74,36 +81,18 @@ public class ServicioVersionRest {
             return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
         }
 
-        String sistemaOperativo;
-        String aplicacion;
-        String versionApp;
-        String sha;
+        String sistemaTransversal;
 
         try {
-            sistemaOperativo = json.getString("sistemaOperativo");
+            sistemaTransversal = json.getString("sistemaTransversal");
         } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaOperativo\"";
-        }
-        try {
-            aplicacion = json.getString("aplicacion");
-        } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"aplicacion\"";
-        }
-        try {
-            versionApp = json.getString("versionApp");
-        } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
-        }
-        try {
-            sha = json.getString("sha");
-        } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sha\"";
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaTransversal\"";
         }
 
         try {
-            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp, sha);
-        } catch (ServicioVersionException e) {
-            return "versión no encontrada";
+            return servicioJWT.getJWT(apiKey, sistemaTransversal);
+        } catch (ServicioSistemaTransversalException e) {
+            return UtilsJson.generarJsonResponse(500, e.getMessage(), null);
         }
     }
 }

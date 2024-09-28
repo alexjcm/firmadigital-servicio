@@ -62,7 +62,7 @@ import jakarta.ws.rs.core.Response;
 public class ServicioAppFirmarDocumentoTransversal {
 
     private final String REST_SERVICE_URL_PREPRODUCCION = "https://impws.firmadigital.gob.ec/servicio/documentos/";
-    private final String REST_SERVICE_URL_DESARROLLO = "http://localhost:8181/servicio/documentos/";
+    private final String REST_SERVICE_URL_DESARROLLO = "http://testws.firmadigital.gob.ec:8080/servicio/documentos/";
     private final String REST_SERVICE_URL_PRODUCCION = "http://wsmobile.firmadigital.gob.ec:8080/servicio/documentos/";
 
     private String restServiceUrl;

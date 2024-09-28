@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.xml.bind.DatatypeConverter;
@@ -54,6 +53,7 @@ import org.w3c.dom.NodeList;
 import ec.gob.firmadigital.servicio.model.Sistema;
 import ec.gob.firmadigital.libreria.certificate.to.Certificado;
 import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import jakarta.ws.rs.client.Client;
@@ -86,15 +86,15 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre
      * @return
-     * @throws IllegalArgumentException
+     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
-    public Sistema buscarSistema(String nombre) throws IllegalArgumentException {
+    public Sistema buscarSistema(String nombre) throws ServicioSistemaTransversalException {
         try {
             TypedQuery<Sistema> q = em.createQuery("SELECT s FROM Sistema s WHERE s.nombre = :nombre", Sistema.class);
             q.setParameter("nombre", nombre);
             return q.getSingleResult();
-        } catch (NoResultException e) {
-            throw new IllegalArgumentException("No se encontro el sistema " + nombre);
+        } catch (Exception e) {
+            throw new ServicioSistemaTransversalException("No se encontro el sistema " + nombre, e.getCause());
         }
     }
 
@@ -104,15 +104,16 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre nombre del sistema transversal
      * @return el URL del sistema traansversal
+     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      * @throws IllegalArgumentException si no se encuentra ese nombre de sistema
      * transversal
      */
-    public URL buscarUrlSistema(String nombre) throws IllegalArgumentException {
+    public URL buscarUrlSistema(String nombre) throws ServicioSistemaTransversalException {
         try {
             Sistema sistema = buscarSistema(nombre);
             return new URL(sistema.getURL());
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("El URL no es correcto: " + e.getMessage());
+        } catch (ServicioSistemaTransversalException | MalformedURLException e) {
+            throw new ServicioSistemaTransversalException("El URL no es correcto: " + e.getMessage());
         }
     }
 
@@ -122,10 +123,32 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre nombre del sistema transversal
      * @return el ApiKey del servicio REST
+     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
-    public String buscarApiKeyRest(String nombre) {
-        Sistema sistema = buscarSistema(nombre);
-        return sistema.getApiKeyRest();
+    public String buscarApiKey(String nombre) throws ServicioSistemaTransversalException {
+        try {
+            Sistema sistema = buscarSistema(nombre);
+            return sistema.getApiKey();
+        } catch (ServicioSistemaTransversalException e) {
+            throw new ServicioSistemaTransversalException(e);
+        }
+    }
+
+    /**
+     * Obtiene el ApiKeyRest del Web Service de un sistema transversal, para
+     * devolver el documento firmado por el usuario.
+     *
+     * @param nombre nombre del sistema transversal
+     * @return el ApiKeyRest del servicio REST
+     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
+     */
+    public String buscarApiKeyRest(String nombre) throws ServicioSistemaTransversalException {
+        try {
+            Sistema sistema = buscarSistema(nombre);
+            return sistema.getApiKeyRest();
+        } catch (ServicioSistemaTransversalException e) {
+            throw new ServicioSistemaTransversalException(e);
+        }
     }
 
     /**
@@ -294,7 +317,7 @@ public class ServicioSistemaTransversal {
 
         try {
             sistema = buscarSistema(nombre);
-        } catch (IllegalArgumentException e) {
+        } catch (ServicioSistemaTransversalException e) {
             logger.severe("No existe el sistema: " + nombre);
             return false;
         }
@@ -302,10 +325,10 @@ public class ServicioSistemaTransversal {
         String apiKeySistema = sistema.getApiKey().toUpperCase();
         logger.fine("apiKeySistema=" + apiKey);
 
-        // Si no tiene API Key dejar pasar la invocacion!
+        // Si no tiene API Key
         if (apiKeySistema == null) {
             logger.warning("API KEY is null, sistema=" + nombre);
-            return true;
+            return false;
         }
 
         String hash = hashSha256(apiKey).toUpperCase();

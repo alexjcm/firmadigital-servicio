@@ -53,7 +53,8 @@ import ec.gob.firmadigital.servicio.ServicioLog;
 import ec.gob.firmadigital.servicio.ServicioSistemaTransversal;
 import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
 import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.util.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import jakarta.ws.rs.FormParam;
 
 /**
@@ -166,9 +167,9 @@ public class ServicioDocumentoRest {
 
             // Retornar un token JWT
             return Response.status(Status.CREATED).entity(token).build();
-        } catch (IllegalArgumentException e) {
-            System.out.println("ServicioDocumentoRest::crearDocumentos IllegalArgumentException: " + e.getMessage());
-            servicioLog.error("ServicioDocumentoRest::crearDocumentos", "IllegalArgumentException: " + e.getMessage());
+        } catch (ServicioSistemaTransversalException e) {
+            System.out.println("ServicioDocumentoRest::crearDocumentos ServicioSistemaTransversalException: " + e.getMessage());
+            servicioLog.error("ServicioDocumentoRest::crearDocumentos", "ServicioSistemaTransversalException: " + e.getMessage());
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (Base64InvalidoException e) {
             System.out.println("ServicioDocumentoRest::crearDocumentos Error al decodificar Base64");
@@ -286,7 +287,7 @@ public class ServicioDocumentoRest {
             System.out.println("ServicioDocumentoRest::actualizarDocumentos Certificado revocado");
             servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", e.getMessage());
             return generarErrorResponse("Certificado revocado");
-        } catch (IllegalArgumentException e) {
+        } catch (ServicioSistemaTransversalException e) {
             System.out.println("ServicioDocumentoRest::actualizarDocumentos No se encontraron documentos para firmar");
             servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", e.getMessage());
             return generarErrorResponse("No se encontraron documentos para firmar");

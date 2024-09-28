@@ -15,24 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ec.gob.firmadigital.servicio;
+package ec.gob.firmadigital.servicio.exception;
 
 /**
- * Excepcion lanzada en caso de problemas en la versión.
+ * Excepcion lanzada en caso de problemas en el servicio.
  *
  * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
  * Fernández
  */
 
-public class VersionException extends Exception {
+public class ServicioSistemaTransversalException extends Exception {
 
-    private static final long serialVersionUID = 5869629673463604058L;
-
-    public VersionException() {
-        super();
+    public ServicioSistemaTransversalException() {
     }
 
-    public VersionException(String message) {
+    public ServicioSistemaTransversalException(String message) {
         super(message);
+    }
+
+    public ServicioSistemaTransversalException(Throwable cause) {
+        super(cause);
+    }
+
+    public ServicioSistemaTransversalException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

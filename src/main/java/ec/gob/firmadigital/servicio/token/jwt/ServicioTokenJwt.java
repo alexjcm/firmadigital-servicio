@@ -29,7 +29,7 @@ import jakarta.ejb.Startup;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
 import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
 import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.util.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
 import ec.gob.firmadigital.servicio.util.Base64Util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

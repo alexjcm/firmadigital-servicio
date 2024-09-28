@@ -29,7 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
-import ec.gob.firmadigital.servicio.util.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
 import ec.gob.firmadigital.servicio.util.Base64Util;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;

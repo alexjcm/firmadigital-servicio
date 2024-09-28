@@ -33,6 +33,18 @@ public class TokenTimeout {
      * Agregar una cantidad de minutos a una hora dada.
      *
      * @param date
+     * @param seconds
+     * @return
+     */
+    public static Date addSeconds(Date date, int seconds) {
+        long time = date.getTime() + (seconds * 1000);
+        return new Date(time);
+    }
+    
+    /**
+     * Agregar una cantidad de minutos a una hora dada.
+     *
+     * @param date
      * @param minutes
      * @return
      */

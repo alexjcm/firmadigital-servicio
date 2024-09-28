@@ -39,7 +39,7 @@ import jakarta.ws.rs.core.Response.Status;
 
 import ec.gob.firmadigital.servicio.CertificadoRevocadoException;
 import ec.gob.firmadigital.servicio.crl.ServicioConsultaCrl;
-import ec.gob.firmadigital.servicio.util.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
 import ec.gob.firmadigital.servicio.util.Base64Util;
 import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
 import ec.gob.firmadigital.libreria.exceptions.OcspValidationException;

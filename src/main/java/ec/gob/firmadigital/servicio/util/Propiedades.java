@@ -33,6 +33,14 @@ import jakarta.json.JsonReader;
 public class Propiedades {
 
     public static Properties propiedades(String version, String llx, String lly, String pagina, String tipoEstampa, String razon, String url, String fechaHora, String base64) throws IOException, HoraServidorException {
+        return getPropiedades(null, llx, lly, pagina, tipoEstampa, razon, url, fechaHora, base64);
+    }
+
+    public static Properties propiedades(String llx, String lly, String pagina, String tipoEstampa, String razon, String url, String fechaHora, String base64) throws IOException, HoraServidorException {
+        return getPropiedades(null, llx, lly, pagina, tipoEstampa, razon, url, fechaHora, base64);
+    }
+
+    public static Properties getPropiedades(String version, String llx, String lly, String pagina, String tipoEstampa, String razon, String url, String fechaHora, String base64) throws IOException, HoraServidorException {
         Properties properties = new Properties();
         properties.setProperty(PDFSignerItext.SIGNING_LOCATION, "");
         if (fechaHora == null) {
@@ -44,10 +52,16 @@ public class Propiedades {
         jakarta.json.JsonObject json;
         JsonReader jsonReader = Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
         json = (jakarta.json.JsonObject) jsonReader.read();
-        String sistemaOperativo;
-        sistemaOperativo = json.getString("sistemaOperativo");
+        String getVersion;
+        getVersion = json.getString("versionApp");
+        String getSistemaOperativo;
+        getSistemaOperativo = json.getString("sistemaOperativo");
 
-        properties.setProperty(PDFSignerItext.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC mobile " + version + " " +sistemaOperativo);
+        if (version != null) {
+            properties.setProperty(PDFSignerItext.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC mobile " + version + " " + getSistemaOperativo);
+        } else {
+            properties.setProperty(PDFSignerItext.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC transversal" + getVersion + " " + getSistemaOperativo);
+        }
         if (llx != null) {
             properties.setProperty(RectanguloUtil.POSITION_ON_PAGE_LOWER_LEFT_X, llx);
         }
@@ -59,7 +73,7 @@ public class Propiedades {
         }
         if (tipoEstampa != null) {
             properties.setProperty(PDFSignerItext.TYPE_SIG, tipoEstampa);
-        }else{
+        } else {
             properties.setProperty(PDFSignerItext.TYPE_SIG, "QR");
         }
         if (razon != null) {

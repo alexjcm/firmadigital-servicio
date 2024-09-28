@@ -16,6 +16,7 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import java.util.logging.Logger;
 
 import jakarta.ejb.Stateless;
@@ -57,9 +58,9 @@ public class ServicioVersion {
      * @param versionApp
      * @param sha
      * @return
-     * @throws VersionException
+     * @throws ServicioVersionException
      */
-    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp, @NotNull String sha) throws VersionException {
+    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp, @NotNull String sha) throws ServicioVersionException {
         String retorno = "";
         com.google.gson.JsonObject gsonObject = null;
         try {
