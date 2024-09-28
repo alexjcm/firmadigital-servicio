@@ -131,23 +131,21 @@ public class ServicioTransversalValidarCertificadoDigital {
             ex.printStackTrace();
         } finally {
             JsonObject jsonObject = new JsonObject();
-            boolean signValidate = true;
+            boolean certificateValidate = true;
             if (certificado != null) {
                 //TODO reparar al verificar un certificado no encontrado
                 if (revocado || certificado.getValidated() || !certificado.getDatosUsuario().isCertificadoDigitalValido()) {
-                    signValidate = false;
+                    certificateValidate = false;
                 } else {
-                    signValidate = true;
+                    certificateValidate = true;
                 }
-                jsonObject.addProperty("signValidate", signValidate);
-                jsonObject.addProperty("docValidate", false);
+                jsonObject.addProperty("validarCertificado", certificateValidate);
                 jsonObject.addProperty("error", retorno);
-                String jsonCertificado = Json.generarJsonCertificado(certificado);
+                String jsonCertificado = Json.generarJsonCertificadoTransversal(certificado);
                 JsonParser jsonParser = new JsonParser();
                 jsonObject.add("certificado", (JsonArray) jsonParser.parse(jsonCertificado));
             } else {
-                jsonObject.addProperty("signValidate", false);
-                jsonObject.addProperty("docValidate", false);
+                jsonObject.addProperty("validarCertificado", false);
                 jsonObject.addProperty("error", retorno);
                 jsonObject.add("certificado", null);
             }

@@ -171,7 +171,7 @@ public class ServicioTransversalFirmarDocumento {
         if (documento == null) {
             documento = new Documento(false, false, new ArrayList<>(), retorno);
         }
-        String json = Json.generarJsonDocumentoFirmado(byteDocumentoSigned, documento);
+        String json = Json.generarJsonDocumentoFirmadoTransversal(byteDocumentoSigned, documento);
         if (documento.getError() == null) {
             String nombreSistema = sistemaTransversal;
             logger.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), Integer.valueOf(byteDocumentoSigned.length)});
