@@ -28,6 +28,7 @@ import jakarta.validation.constraints.NotNull;
 
 import ec.gob.firmadigital.servicio.model.ApiUrl;
 import jakarta.ejb.EJB;
+import java.util.logging.Level;
 
 /**
  * Buscar en una lista de URLs permitidos para utilizar como API. Esto permite
@@ -45,7 +46,7 @@ public class ServicioApiUrl {
     @PersistenceContext
     private EntityManager em;
 
-    private static final Logger logger = Logger.getLogger(ServicioApiUrl.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioApiUrl.class.getName());
 
     /**
      * Busca un ApiUrl por URL.
@@ -74,21 +75,21 @@ public class ServicioApiUrl {
             }
         } catch (NoResultException e) {
             retorno = "URL no encontrado";
-            logger.severe(retorno + ": " + url);
+            LOGGER.log(Level.SEVERE, "{0}: {1}", new Object[]{retorno, url});
             servicioLog.error("ServicioApiUrl::buscarPorUrl",
                     "Sistema " + sistema
                     + ", URL consultada: " + url + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (NonUniqueResultException e) {
             retorno = "Varias URLs registradas";
-            logger.severe(retorno + ": " + url);
+            LOGGER.log(Level.SEVERE, "{0}: {1}", new Object[]{retorno, url});
             servicioLog.error("ServicioApiUrl::buscarPorUrl",
                     "Sistema " + sistema
                     + ", URL consultada: " + url + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (java.lang.NullPointerException e) {
             retorno = "Revisar el estado de la URL registrada";
-            logger.severe(retorno + ": " + url);
+            LOGGER.log(Level.SEVERE, "{0}: {1}", new Object[]{retorno, url});
             servicioLog.error("ServicioApiUrl::buscarPorUrl",
                     "Sistema " + sistema
                     + ", URL consultada: " + url + ", " + retorno);

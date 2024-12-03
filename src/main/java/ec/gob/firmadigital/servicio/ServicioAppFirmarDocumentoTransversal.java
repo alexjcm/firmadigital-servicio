@@ -66,7 +66,7 @@ public class ServicioAppFirmarDocumentoTransversal {
     private final String REST_SERVICE_URL_PRODUCCION = "http://wsmobile.firmadigital.gob.ec:8080/servicio/documentos/";
 
     private String restServiceUrl;
-    private static final Logger logger = Logger.getLogger(ServicioAppFirmarDocumentoTransversal.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioAppFirmarDocumentoTransversal.class.getName());
 
     private String resultado = null;
     private String sistema = null;
@@ -227,9 +227,9 @@ public class ServicioAppFirmarDocumentoTransversal {
                 resultado = JsonProcessor.parseJsonDocumentoFirmado(body);
             }
         } catch (BadRequestException e) {
-            logger.log(Level.SEVERE, "BadRequestException: " + e.getResponse().readEntity(String.class));
+            LOGGER.log(Level.SEVERE, "BadRequestException: {0}", e.getResponse().readEntity(String.class));
         } catch (WebApplicationException e) {
-            logger.log(Level.SEVERE, "WebApplicationException: " + e.getResponse().readEntity(String.class));
+            LOGGER.log(Level.SEVERE, "WebApplicationException: {0}", e.getResponse().readEntity(String.class));
         }
     }
 
@@ -252,7 +252,7 @@ public class ServicioAppFirmarDocumentoTransversal {
                 error = "Certificado no corresponde al usuario.\nVuelva a intentarlo.";
             }
             if (body.contains("Certificado revocado")) {
-                error = "Certificado puede estar caducado o revocado.\nVuelva a intentarlo.";
+                error = "Certificado puede estar expirado o revocado.\nVuelva a intentarlo.";
             }
             if (body.contains("Request Entity Too Large")) {
                 error = "Problemas con los servicios web.\nComuníquese con el administrador de su sistema.";

@@ -49,7 +49,6 @@ import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
 import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaException;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
 import ec.gob.firmadigital.libreria.utils.Utils;
 import java.util.logging.Level;
 
@@ -68,7 +67,7 @@ public class ServicioValidacionPdf {
     private static final Logger LOGGER = Logger.getLogger(ServicioValidacionPdf.class.getName());
 
     public String getNombre(byte[] pdf) throws IOException, InvalidFormatException, CertificadoRevocadoException {
-        Signer signer = new PDFSignerItext();
+        Signer signer = new BasePdfSigner();
         List<SignInfo> singInfos = signer.getSigners(pdf);
 
         if (!singInfos.isEmpty()) {
@@ -77,7 +76,7 @@ public class ServicioValidacionPdf {
 
             LOGGER.info("Verificando CRL local del certificado");
             boolean revocado = servicioCrl.isRevocado(certificado.getSerialNumber());
-            LOGGER.info("revocado=" + revocado);
+            LOGGER.log(Level.INFO, "revocado={0}", revocado);
 
             if (revocado) {
                 throw new CertificadoRevocadoException();
@@ -103,7 +102,7 @@ public class ServicioValidacionPdf {
             return Response.status(Status.BAD_REQUEST).entity("Error al decodificar Base64").build();
         }
 
-        Signer signer = new PDFSignerItext();
+        Signer signer = new BasePdfSigner();
         List<SignInfo> firmas;
 
         try {

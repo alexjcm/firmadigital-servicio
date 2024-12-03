@@ -41,14 +41,14 @@ import jakarta.ejb.EJB;
  */
 @Stateless
 public class ServicioVersion {
-    
+
     @EJB
     private ServicioLog servicioLog;
-    
+
     @PersistenceContext
     private EntityManager em;
-    
-    private static final Logger logger = Logger.getLogger(ServicioVersion.class.getName());
+
+    private static final Logger LOGGER = Logger.getLogger(ServicioVersion.class.getName());
 
     /**
      * Busca una versión, para ello se utiliza el sha con la versión 256
@@ -81,19 +81,19 @@ public class ServicioVersion {
             }
         } catch (NoResultException e) {
             retorno = "Versión no encontrado";
-            logger.severe(retorno);
+            LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
                     "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (NonUniqueResultException e) {
             retorno = "Varias Versiones registradas";
-            logger.severe(retorno);
+            LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
                     "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (java.lang.NullPointerException e) {
             retorno = "Revisar el estado de la URL registrada";
-            logger.severe(retorno);
+            LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
                     "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);

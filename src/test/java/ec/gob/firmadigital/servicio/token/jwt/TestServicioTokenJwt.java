@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ec.gob.firmadigital.servicio.token.jwt;
 
 import static org.junit.Assert.assertEquals;
@@ -42,93 +41,93 @@ import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
  */
 public class TestServicioTokenJwt {
 
-	@Test
-	public void testParseToken() throws Exception {
-		ServicioTokenJwt servicioToken = new ServicioTokenJwt();
-		servicioToken.init();
+    @Test
+    public void testParseToken() throws Exception {
+        ServicioTokenJwt servicioToken = new ServicioTokenJwt();
+        servicioToken.init();
 
-		Map<String, Object> parametros = new HashMap<>();
-		parametros.put("a", 1);
-		String token = servicioToken.generarToken(parametros);
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("a", 1);
+        String token = servicioToken.generarToken(parametros);
 
-		Map<String, Object> parametros2 = servicioToken.parseToken(token);
-		assertEquals(parametros, parametros2);
-	}
+        Map<String, Object> parametros2 = servicioToken.parseToken(token);
+        assertEquals(parametros, parametros2);
+    }
 
-	@Test
-	public void testParseTokenConExpiracion() throws Exception {
-		ServicioTokenJwt servicioToken = new ServicioTokenJwt();
-		servicioToken.init();
+    @Test
+    public void testParseTokenConExpiracion() throws Exception {
+        ServicioTokenJwt servicioToken = new ServicioTokenJwt();
+        servicioToken.init();
 
-		Map<String, Object> parametros = new HashMap<>();
-		parametros.put("a", 1);
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("a", 1);
 
-		LocalDateTime before = LocalDateTime.now().minusMinutes(1);
-		Date date = Date.from(before.toInstant(ZoneOffset.of("-05:00")));
+        LocalDateTime before = LocalDateTime.now().minusMinutes(1);
+        Date date = Date.from(before.toInstant(ZoneOffset.of("-05:00")));
 
-		String token = servicioToken.generarToken(parametros, date);
+        String token = servicioToken.generarToken(parametros, date);
 
-		try {
-			servicioToken.parseToken(token);
-			fail();
-		} catch (TokenExpiradoException e) {
-		}
-	}
+        try {
+            servicioToken.parseToken(token);
+            fail();
+        } catch (TokenExpiradoException e) {
+        }
+    }
 
-	@Test
-	public void testParseTokenSinExpiracion() throws Exception {
-		ServicioTokenJwt servicioToken = new ServicioTokenJwt();
-		servicioToken.init();
+    @Test
+    public void testParseTokenSinExpiracion() throws Exception {
+        ServicioTokenJwt servicioToken = new ServicioTokenJwt();
+        servicioToken.init();
 
-		Map<String, Object> parametros = new HashMap<>();
-		parametros.put("a", 1);
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("a", 1);
 
-		LocalDateTime before = LocalDateTime.now().plusMinutes(15);
-		Date date = Date.from(before.toInstant(ZoneOffset.of("-05:00")));
+        LocalDateTime before = LocalDateTime.now().plusMinutes(15);
+        Date date = Date.from(before.toInstant(ZoneOffset.of("-05:00")));
 
-		String token = servicioToken.generarToken(parametros, date);
+        String token = servicioToken.generarToken(parametros, date);
 
-		try {
-			servicioToken.parseToken(token);
-			Map<String, Object> parametros2 = servicioToken.parseToken(token);
-			assertEquals(1, parametros2.get("a"));
-		} catch (TokenExpiradoException e) {
-			fail();
-		}
-	}
+        try {
+            servicioToken.parseToken(token);
+            Map<String, Object> parametros2 = servicioToken.parseToken(token);
+            assertEquals(1, parametros2.get("a"));
+        } catch (TokenExpiradoException e) {
+            fail();
+        }
+    }
 
-	@Test
-	public void testParseTokenInvalido() throws Exception {
-		ServicioTokenJwt servicioToken = new ServicioTokenJwt();
-		servicioToken.init();
+    @Test
+    public void testParseTokenInvalido() throws Exception {
+        ServicioTokenJwt servicioToken = new ServicioTokenJwt();
+        servicioToken.init();
 
-		try {
-			// Token firmado con otra llave secreta
-			servicioToken.parseToken("eyJhbGciOiJIUzI1NiJ9.eyJhIjoxfQ.co8628bPk8NFBhogFsOCaBCWM0hEUv0exdhMmMOPe2k");
-			fail();
-		} catch (TokenInvalidoException e) {
-		}
+        try {
+            // Token firmado con otra llave secreta
+            servicioToken.parseToken("eyJhbGciOiJIUzI1NiJ9.eyJhIjoxfQ.co8628bPk8NFBhogFsOCaBCWM0hEUv0exdhMmMOPe2k");
+            fail();
+        } catch (TokenInvalidoException e) {
+        }
 
-		try {
-			// Token sin firma
-			servicioToken.parseToken("eyJhbGciOiJIUzI1NiJ9.eyJhIjoxfQ");
-			fail();
-		} catch (TokenInvalidoException e) {
-		}
+        try {
+            // Token sin firma
+            servicioToken.parseToken("eyJhbGciOiJIUzI1NiJ9.eyJhIjoxfQ");
+            fail();
+        } catch (TokenInvalidoException e) {
+        }
 
-		try {
-			// Token mal formado
-			servicioToken.parseToken("gfdgfdgfdgfdgfdgfd.gfdgfdgfdgfdgfdgfd.gfdgfdgfdg");
-			fail();
-		} catch (TokenInvalidoException e) {
-		}
-	}
+        try {
+            // Token mal formado
+            servicioToken.parseToken("gfdgfdgfdgfdgfdgfd.gfdgfdgfdgfdgfdgfd.gfdgfdgfdg");
+            fail();
+        } catch (TokenInvalidoException e) {
+        }
+    }
 
-	@Test
-	public void testSecretKey() throws Exception {
-		SecretKey secretKey1 = ServicioTokenJwt.generarLlaveSecreta();
-		String keyBase64 = ServicioTokenJwt.codificarLlaveSecreta(secretKey1);
-		SecretKey secretKey2 = ServicioTokenJwt.decodificarLlaveSecreta(keyBase64);
-		assertTrue(secretKey1.equals(secretKey2));
-	}
+    @Test
+    public void testSecretKey() throws Exception {
+        SecretKey secretKey1 = ServicioTokenJwt.generarLlaveSecreta();
+        String keyBase64 = ServicioTokenJwt.codificarLlaveSecreta(secretKey1);
+        SecretKey secretKey2 = ServicioTokenJwt.decodificarLlaveSecreta(keyBase64);
+        assertTrue(secretKey1.equals(secretKey2));
+    }
 }

@@ -38,11 +38,10 @@ public class ServicioConsultaCrl {
     @Resource(lookup = "java:/FirmaDigitalDS")
     private DataSource ds;
 
-    private static final Logger logger = Logger.getLogger(ServicioConsultaCrl.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioConsultaCrl.class.getName());
 
     public boolean isRevocado(BigInteger serial) {
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement("SELECT serial FROM crl WHERE serial=?")) {
+        try (Connection conn = ds.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT serial FROM crl WHERE serial=?")) {
 
             ps.setString(1, serial.toString());
 
@@ -50,14 +49,13 @@ public class ServicioConsultaCrl {
                 return rs.next();
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error al buscar certificado", e);
+            LOGGER.log(Level.SEVERE, "Error al buscar certificado", e);
             throw new EJBException(e);
         }
     }
 
     public String fechaRevocado(BigInteger serial) {
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement("SELECT fecharevocacion FROM crl WHERE serial=?")) {
+        try (Connection conn = ds.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT fecharevocacion FROM crl WHERE serial=?")) {
 
             ps.setString(1, serial.toString());
 
@@ -71,7 +69,7 @@ public class ServicioConsultaCrl {
                 return fecharevocacion;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error al buscar certificado", e);
+            LOGGER.log(Level.SEVERE, "Error al buscar certificado", e);
             throw new EJBException(e);
         }
     }

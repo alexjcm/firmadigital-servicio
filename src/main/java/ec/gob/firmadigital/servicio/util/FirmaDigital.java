@@ -32,8 +32,8 @@ import java.util.logging.Logger;
 
 public class FirmaDigital {
 
-    final private String hashAlgorithm = "SHA512";
-    private static final Logger logger = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
+    private final String HASH_ALGORITHM = "SHA512";
+    private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
 
     /**
      * Firmar un documento PDF usando un KeyStore y una clave.
@@ -85,11 +85,11 @@ public class FirmaDigital {
                 Document document = new InMemoryDocument(docByteArry);
                 try (InputStream is = document.openStream()) {
                     // Crear un RubricaSigner para firmar el MessageDigest del documento
-                    PrivateKeySigner signer = new PrivateKeySigner(key, DigestAlgorithm.forName(hashAlgorithm));
+                    PrivateKeySigner signer = new PrivateKeySigner(key, DigestAlgorithm.forName(HASH_ALGORITHM));
                     // Crear un PdfSigner para firmar el documento
                     PadesBasicSigner pdfSigner = new PadesBasicSigner(signer);
                     // Firmar el documento
-                    signed = pdfSigner.sign(is, signer, certChain, properties);
+                    signed = pdfSigner.sign(is, key, certChain, properties);
                 } catch (com.itextpdf.io.IOException ioe) {
                     throw new DocumentoException("El archivo no es PDF");
                 }
@@ -109,7 +109,7 @@ public class FirmaDigital {
             throw new CertificadoInvalidoException(x509CertificateUtils.getError());
         } catch (Exception e) {
             if (e.getClass() == IllegalArgumentException.class) {
-                logger.log(Level.WARNING, "Problemas con la emisión del certificado digital");
+                LOGGER.log(Level.WARNING, "Problemas con la emisión del certificado digital");
             } else {
                 e.printStackTrace();
             }
@@ -177,7 +177,7 @@ public class FirmaDigital {
             throw new CertificadoInvalidoException(x509CertificateUtils.getError());
         } catch (Exception e) {
             if (e.getClass() == IllegalArgumentException.class) {
-                logger.log(Level.WARNING, "Problemas con la emisión del certificado digital");
+                LOGGER.log(Level.WARNING, "Problemas con la emisión del certificado digital");
             } else {
                 e.printStackTrace();
             }

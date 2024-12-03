@@ -33,7 +33,7 @@ import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
@@ -77,7 +77,7 @@ public class ServicioTransversalFirmarDocumento {
     @EJB
     private ServicioToken servicioToken;
 
-    private static final Logger logger = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioTransversalFirmarDocumento.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioTransversalFirmarDocumento.class.getName());
 
     public String transversalFirmarDocumento(@NotNull String jwt, @NotNull String pkcs12, @NotNull String password,
             @NotNull String documentoBase64, String formatoDocumento,
@@ -154,7 +154,7 @@ public class ServicioTransversalFirmarDocumento {
                 //Verificar Documento
                 InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumentoSigned);
                 PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-                Signer signer = new PDFSignerItext();
+                Signer signer = new BasePdfSigner();
                 java.util.List<SignInfo> signInfos;
                 signInfos = signer.getSigners(byteDocumentoSigned);
                 documento = pdfToDocumento(pdfReader, signInfos);
@@ -174,7 +174,7 @@ public class ServicioTransversalFirmarDocumento {
         String json = Json.generarJsonDocumentoFirmadoTransversal(byteDocumentoSigned, documento);
         if (documento.getError() == null) {
             String nombreSistema = sistemaTransversal;
-            logger.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), Integer.valueOf(byteDocumentoSigned.length)});
+            LOGGER.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), byteDocumentoSigned.length});
             this.servicioLog.info("ServicioAppFirmarDocumento::firmarDocumento", "Documento enviado al sistema " + nombreSistema + ", firmado por "
                     + hashMD5(datosUsuario.getCedula()) + ", sistema operativo "
                     + obtenerSO(base64) + ", tamano documento (bytes) " + byteDocumentoSigned.length);

@@ -78,7 +78,7 @@ public class ServicioDocumentoRest {
 
     private static final String API_KEY_HEADER_PARAMETER = "X-API-KEY";
 
-    private static final Logger logger = Logger.getLogger(ServicioDocumentoRest.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioDocumentoRest.class.getName());
 
     /**
      * Almacena varios documentos desde un Sistema Transversal.
@@ -140,7 +140,7 @@ public class ServicioDocumentoRest {
         // Verificar API KEY
         if (!servicioSistemaTransversal.verificarApiKey(sistema, apiKey)) {
             System.out.println("Error al validar API_KEY para el sistema: " + sistema);
-            logger.log(Level.SEVERE, "Error al validar API_KEY para el sistema {0}", sistema);
+            LOGGER.log(Level.SEVERE, "Error al validar API_KEY para el sistema {0}", sistema);
             return Response.status(Status.FORBIDDEN).entity("Error al validar API_KEY").build();
         }
 

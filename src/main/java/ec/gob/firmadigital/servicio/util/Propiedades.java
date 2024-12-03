@@ -18,10 +18,10 @@
 package ec.gob.firmadigital.servicio.util;
 
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import java.io.IOException;
 import java.util.Properties;
 
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
 import ec.gob.firmadigital.libreria.sign.pdf.RectanguloUtil;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import java.io.StringReader;
@@ -42,11 +42,11 @@ public class Propiedades {
 
     public static Properties getPropiedades(String version, String llx, String lly, String pagina, String tipoEstampa, String razon, String url, String fechaHora, String base64) throws IOException, HoraServidorException {
         Properties properties = new Properties();
-        properties.setProperty(PDFSignerItext.SIGNING_LOCATION, "");
+        properties.setProperty(BasePdfSigner.SIGNING_LOCATION, "");
         if (fechaHora == null) {
-            properties.setProperty(PDFSignerItext.SIGN_TIME, TiempoUtils.getFechaHoraServidor(url != null ? url + "/fecha-hora" : null, base64));
+            properties.setProperty(BasePdfSigner.SIGN_TIME, TiempoUtils.getFechaHoraServidor(url != null ? url + "/fecha-hora" : null, base64));
         } else {
-            properties.setProperty(PDFSignerItext.SIGN_TIME, fechaHora);
+            properties.setProperty(BasePdfSigner.SIGN_TIME, fechaHora);
         }
         String jsonParameter = new String(Base64.getDecoder().decode(base64));
         jakarta.json.JsonObject json;
@@ -58,9 +58,9 @@ public class Propiedades {
         getSistemaOperativo = json.getString("sistemaOperativo");
 
         if (version != null) {
-            properties.setProperty(PDFSignerItext.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC mobile " + version + " " + getSistemaOperativo);
+            properties.setProperty(BasePdfSigner.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC mobile " + version + " " + getSistemaOperativo);
         } else {
-            properties.setProperty(PDFSignerItext.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC transversal" + getVersion + " " + getSistemaOperativo);
+            properties.setProperty(BasePdfSigner.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC transversal" + getVersion + " " + getSistemaOperativo);
         }
         if (llx != null) {
             properties.setProperty(RectanguloUtil.POSITION_ON_PAGE_LOWER_LEFT_X, llx);
@@ -69,15 +69,15 @@ public class Propiedades {
             properties.setProperty(RectanguloUtil.POSITION_ON_PAGE_LOWER_LEFT_Y, lly);
         }
         if (pagina != null) {
-            properties.setProperty(PDFSignerItext.LAST_PAGE, pagina);
+            properties.setProperty(BasePdfSigner.LAST_PAGE, pagina);
         }
         if (tipoEstampa != null) {
-            properties.setProperty(PDFSignerItext.TYPE_SIG, tipoEstampa);
+            properties.setProperty(BasePdfSigner.TYPE_SIG, tipoEstampa);
         } else {
-            properties.setProperty(PDFSignerItext.TYPE_SIG, "QR");
+            properties.setProperty(BasePdfSigner.TYPE_SIG, "QR");
         }
         if (razon != null) {
-            properties.setProperty(PDFSignerItext.SIGNING_REASON, URLDecoder.decode(razon, "UTF-8"));
+            properties.setProperty(BasePdfSigner.SIGNING_REASON, URLDecoder.decode(razon, "UTF-8"));
         }
         return properties;
     }

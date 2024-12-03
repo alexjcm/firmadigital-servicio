@@ -69,7 +69,7 @@ public class ServicioTransversalValidarCertificadoDigital {
     public String transversalValidarCertificadoDigital(@NotNull String jwt, @NotNull String pkcs12, @NotNull String password, @NotNull String base64) {
         Certificado certificado = null;
         String retorno = null;
-        boolean caducado = true, revocado = true;
+        boolean expirado = true, revocado = true;
 
         try {
             String decodedPassword = new String(Base64.getDecoder().decode(password));
@@ -86,7 +86,6 @@ public class ServicioTransversalValidarCertificadoDigital {
             TemporalAccessor accessor = dateTimeFormatter.parse(TiempoUtils.getFechaHoraServidor(null, base64));
             Date fechaHoraISO = Date.from(Instant.from(accessor));
             //Validad certificado revocado
-            //Date fechaRevocado = fechaString_Date("2022-06-01 10:00:16");
             Date fechaRevocado = UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null);
             if (fechaRevocado != null && fechaRevocado.compareTo(fechaHoraISO) <= 0) {
                 retorno = "Certificado revocado: " + fechaRevocado;
@@ -94,23 +93,22 @@ public class ServicioTransversalValidarCertificadoDigital {
             } else {
                 revocado = false;
             }
-            //if (fechaHoraISO.compareTo(x509Certificate.getNotBefore()) <= 0 || fechaHoraISO.compareTo(fechaString_Date("2022-06-21 10:00:16")) >= 0) {
             if (fechaHoraISO.compareTo(x509Certificate.getNotBefore()) <= 0 || fechaHoraISO.compareTo(x509Certificate.getNotAfter()) >= 0) {
-                retorno = "Certificado caducado";
-                caducado = true;
+                retorno = "Certificado expirado";
+                expirado = true;
             } else {
-                caducado = false;
+                expirado = false;
             }
             DatosUsuario datosUsuario = CertEcUtils.getDatosUsuarios(x509Certificate);
             certificado = new Certificado(
+                    x509Certificate.getSerialNumber().toString(),
                     Util.getCN(x509Certificate),
                     CertEcUtils.getNombreCA(x509Certificate),
                     Utils.dateToCalendar(x509Certificate.getNotBefore()),
                     Utils.dateToCalendar(x509Certificate.getNotAfter()),
                     null,
-                    //Utils.dateToCalendar(fechaString_Date("2022-06-01 10:00:16")),
                     Utils.dateToCalendar(UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null)),
-                    caducado,
+                    expirado,
                     datosUsuario);
             certificado.setKeyUsages(Utils.validacionKeyUsages(x509Certificate));
         } catch (TokenInvalidoException ex) {
@@ -134,7 +132,7 @@ public class ServicioTransversalValidarCertificadoDigital {
             boolean certificateValidate = true;
             if (certificado != null) {
                 //TODO reparar al verificar un certificado no encontrado
-                if (revocado || certificado.getValidated() || !certificado.getDatosUsuario().isCertificadoDigitalValido()) {
+                if (revocado || certificado.getCertificateValidated() || !certificado.getDatosUsuario().isCertificadoDigitalValido()) {
                     certificateValidate = false;
                 } else {
                     certificateValidate = true;

@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 import com.itextpdf.kernel.pdf.PdfReader;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import java.io.ByteArrayInputStream;
 
 import jakarta.ejb.Stateless;
@@ -56,7 +56,7 @@ public class ServicioValidacionPdfRest {
         byte[] byteDocumento = java.util.Base64.getDecoder().decode(archivoBase64);
         InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
         PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-        Signer signer = new PDFSignerItext();
+        Signer signer = new BasePdfSigner();
         java.util.List<SignInfo> signInfos;
         signInfos = signer.getSigners(byteDocumento);
 
@@ -71,35 +71,30 @@ public class ServicioValidacionPdfRest {
                 jsonDoc.addProperty("integridadDocumento", documento.getDocValidate());
                 jsonDoc.addProperty("error", "null");
                 JsonArray arrayCer = new JsonArray();
-                for (Certificado cert : documento.getCertificados()) {
-//					String fecha = servicioCrl.fechaRevocado(new BigInteger(cert.getDatosUsuario().getSerial()));
-//					Date fechaRevocado = UtilsCrlOcsp.fechaString_Date(fecha);
-//					cert.setRevocated(Utils.dateToCalendar(fechaRevocado));
-
-                    JsonObject jsonCer = new JsonObject();
-                    jsonCer.addProperty("emitidoPara", cert.getIssuedTo());
-                    jsonCer.addProperty("emitidoPor", cert.getIssuedBy());
-                    jsonCer.addProperty("validoDesde", calendarToString(cert.getValidFrom()));
-                    jsonCer.addProperty("validoHasta", calendarToString(cert.getValidTo()));
-                    jsonCer.addProperty("fechaFirma", calendarToString(cert.getGenerated()));
-                    jsonCer.addProperty("fechaRevocado", cert.getRevocated() != null ? calendarToString(cert.getRevocated()) : "");
-                    jsonCer.addProperty("certificadoVigente", cert.getValidated());
-                    jsonCer.addProperty("clavesUso", cert.getKeyUsages());
-                    jsonCer.addProperty("fechaSelloTiempo", cert.getDocTimeStamp() != null ? dateToString(cert.getDocTimeStamp()) : "");
-                    jsonCer.addProperty("integridadFirma", cert.getSignVerify());
-                    jsonCer.addProperty("razonFirma", cert.getDocReason() != null ? cert.getDocReason() : "");
-                    jsonCer.addProperty("localizacion", cert.getDocLocation() != null ? cert.getDocLocation() : "");
-                    jsonCer.addProperty("cedula", cert.getDatosUsuario().getCedula());
-                    jsonCer.addProperty("nombre", cert.getDatosUsuario().getNombre());
-                    jsonCer.addProperty("apellido", cert.getDatosUsuario().getApellido());
-                    jsonCer.addProperty("institucion", cert.getDatosUsuario().getInstitucion());
-                    jsonCer.addProperty("cargo", cert.getDatosUsuario().getCargo());
-                    jsonCer.addProperty("entidadCertificadora", cert.getDatosUsuario().getEntidadCertificadora());
-                    jsonCer.addProperty("serial", cert.getDatosUsuario().getSerial());
-                    jsonCer.addProperty("selladoTiempo", cert.getDatosUsuario().getSelladoTiempo());
-                    jsonCer.addProperty("certificadoDigitalValido", cert.getDatosUsuario().isCertificadoDigitalValido());
-
-                    arrayCer.add(jsonCer);
+                for (Certificado certificado : documento.getCertificados()) {
+                    JsonObject jsonCertificado = new JsonObject();
+                    jsonCertificado.addProperty("emitidoPara", certificado.getIssuedTo());
+                    jsonCertificado.addProperty("emitidoPor", certificado.getIssuedBy());
+                    jsonCertificado.addProperty("validoDesde", calendarToString(certificado.getValidFrom()));
+                    jsonCertificado.addProperty("validoHasta", calendarToString(certificado.getValidTo()));
+                    jsonCertificado.addProperty("fechaFirma", calendarToString(certificado.getSignGenerated()));
+                    jsonCertificado.addProperty("fechaRevocado", certificado.getRevocated() != null ? calendarToString(certificado.getRevocated()) : "");
+                    jsonCertificado.addProperty("certificadoVigente", certificado.getCertificateValidated());
+                    jsonCertificado.addProperty("clavesUso", certificado.getKeyUsages());
+                    jsonCertificado.addProperty("fechaSelloTiempo", certificado.getDocTimeStamp() != null ? dateToString(certificado.getDocTimeStamp()) : "");
+                    jsonCertificado.addProperty("integridadFirma", certificado.getSignVerify());
+                    jsonCertificado.addProperty("razonFirma", certificado.getDocReason() != null ? certificado.getDocReason() : "");
+                    jsonCertificado.addProperty("localizacion", certificado.getDocLocation() != null ? certificado.getDocLocation() : "");
+                    jsonCertificado.addProperty("cedula", certificado.getDatosUsuario().getCedula());
+                    jsonCertificado.addProperty("nombre", certificado.getDatosUsuario().getNombre());
+                    jsonCertificado.addProperty("apellido", certificado.getDatosUsuario().getApellido());
+                    jsonCertificado.addProperty("institucion", certificado.getDatosUsuario().getInstitucion());
+                    jsonCertificado.addProperty("cargo", certificado.getDatosUsuario().getCargo());
+                    jsonCertificado.addProperty("entidadCertificadora", certificado.getIssuedBy());
+                    jsonCertificado.addProperty("serial", certificado.getSerial());
+                    jsonCertificado.addProperty("selladoTiempo", certificado.getDocValidTimeStamp());
+                    jsonCertificado.addProperty("certificadoDigitalValido", certificado.getDatosUsuario().isCertificadoDigitalValido());
+                    arrayCer.add(jsonCertificado);
                 }
                 jsonDoc.add("certificado", arrayCer);
                 String json = gson.toJson(jsonDoc);

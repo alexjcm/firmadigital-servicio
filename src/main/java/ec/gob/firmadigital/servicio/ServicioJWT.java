@@ -62,13 +62,13 @@ public class ServicioJWT {
             Date expiracion = TokenTimeout.addSeconds(new Date(), 5);//segundos
             // Retorna el Token
             return UtilsJson.generarJsonResponse(
-                    200, 
-                    null, 
+                    200,
+                    null,
                     servicioToken.generarToken(parametros, expiracion));
         } else {
             return UtilsJson.generarJsonResponse(
-                    500, 
-                    "La información enviada no concuerda con la registrada en FirmaEC", 
+                    500,
+                    "La información enviada no concuerda con la registrada en FirmaEC",
                     null);
         }
     }

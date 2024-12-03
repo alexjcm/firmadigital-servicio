@@ -23,7 +23,7 @@ import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import java.io.ByteArrayInputStream;
@@ -46,7 +46,7 @@ public class ServicioAppVerificarDocumento {
             byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
             InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
             PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-            Signer signer = new PDFSignerItext();
+            Signer signer = new BasePdfSigner();
             java.util.List<SignInfo> signInfos;
             signInfos = signer.getSigners(byteDocumento);
             documento = pdfToDocumento(pdfReader, signInfos);

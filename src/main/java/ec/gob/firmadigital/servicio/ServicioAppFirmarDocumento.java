@@ -33,7 +33,7 @@ import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
@@ -71,7 +71,7 @@ public class ServicioAppFirmarDocumento {
     @EJB
     private ServicioLog servicioLog;
 
-    private static final Logger logger = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
 
     public String firmarDocumento(@NotNull String pkcs12, @NotNull String password,
             @NotNull String documentoBase64, String versionFirmaEC, String formatoDocumento,
@@ -98,17 +98,6 @@ public class ServicioAppFirmarDocumento {
                 byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, password.toCharArray(), properties, null, base64);
             }
         } catch (BadPasswordException bpe) {
-
-            //2022-08-19 11:38:00,549 ERROR [org.jboss.as.ejb3.invocation] (default task-1) WFLYEJB0034: Jakarta Enterprise Beans Invocation failed on component ServicioAppFirmarDocumento for method public java.lang.String ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.firmarDocumento(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String): jakarta.ejb.EJBTransactionRolledbackException: PdfReader is not opened with owner password
-//        Caused by: com.itextpdf.kernel.crypto.BadPasswordException: PdfReader is not opened with owner password
-//        at deployment.servicio.war//com.itextpdf.kernel.pdf.PdfDocument.open(PdfDocument.java:1943)
-//        at deployment.servicio.war//com.itextpdf.kernel.pdf.PdfDocument.<init>(PdfDocument.java:325)
-//        at deployment.servicio.war//com.itextpdf.signatures.PdfSigner.initDocument(PdfSigner.java:306)
-//        at deployment.servicio.war//com.itextpdf.signatures.PdfSigner.<init>(PdfSigner.java:288)
-//        at deployment.servicio.war//com.itextpdf.signatures.PdfSigner.<init>(PdfSigner.java:271)
-//        at deployment.servicio.war//ec.gob.firmadigital.sign.pdf.BasePdfSigner.sign(BasePdfSigner.java:86)
-//        at deployment.servicio.war//ec.gob.firmadigital.servicio.util.FirmaDigital.firmarPDF(FirmaDigital.java:69)
-//        at deployment.servicio.war//ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.firmarDocumento(ServicioAppFirmarDocumento.java:80)
             retorno = "Documento protegido con contraseña";
             throw bpe;
         } catch (ConexionException ce) {
@@ -145,7 +134,7 @@ public class ServicioAppFirmarDocumento {
                 //Verificar Documento
                 InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumentoSigned);
                 PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-                Signer signer = new PDFSignerItext();
+                Signer signer = new BasePdfSigner();
                 java.util.List<SignInfo> signInfos;
                 signInfos = signer.getSigners(byteDocumentoSigned);
                 documento = pdfToDocumento(pdfReader, signInfos);
@@ -165,7 +154,7 @@ public class ServicioAppFirmarDocumento {
         String json = Json.generarJsonDocumentoFirmado(byteDocumentoSigned, documento);
         if (documento.getError() == null) {
             String nombreSistema = "FirmaECMobile";
-            logger.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), Integer.valueOf(byteDocumentoSigned.length)});
+            LOGGER.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), byteDocumentoSigned.length});
             this.servicioLog.info("ServicioAppFirmarDocumento::firmarDocumento", "Documento enviado al sistema " + nombreSistema + ", firmado por "
                     + hashMD5(datosUsuario.getCedula()) + ", sistema operativo "
                     + obtenerSO(base64) + ", tamano documento (bytes) " + byteDocumentoSigned.length);

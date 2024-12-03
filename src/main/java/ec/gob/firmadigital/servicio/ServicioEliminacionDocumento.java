@@ -51,16 +51,17 @@ public class ServicioEliminacionDocumento {
     // Timeout en minutos
     private static final String TIMEOUT = "5";
 
-    private static final Logger logger = Logger.getLogger(ServicioEliminacionDocumento.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioEliminacionDocumento.class.getName());
 
     //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR ELIMINAR DOCUMENTOS
     @PostConstruct
     public void init() {
         borrarDocumentos();
     }
+
     @Schedule(hour = "*", minute = "*/" + TIMEOUT, persistent = false)
     //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR ELIMINAR DOCUMENTOS
-    
+
     public void borrarDocumentos() {
         Connection conn = null;
         Statement st = null;
@@ -69,11 +70,11 @@ public class ServicioEliminacionDocumento {
             conn = ds.getConnection();
             st = conn.createStatement();
 
-            logger.info("Borrando documentos de hace mas de " + TIMEOUT + " minutos...");
+            LOGGER.info("Borrando documentos de hace mas de " + TIMEOUT + " minutos...");
             int n = st.executeUpdate("DELETE FROM documento WHERE fecha < NOW() - INTERVAL '" + TIMEOUT + " minutes'");
-            logger.info("Registros eliminados: " + n);
+            LOGGER.log(Level.INFO, "Registros eliminados: {0}", n);
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error al borrar documentos", e);
+            LOGGER.log(Level.SEVERE, "Error al borrar documentos", e);
             throw new EJBException(e);
         } finally {
             if (st != null) {
