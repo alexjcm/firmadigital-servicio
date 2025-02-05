@@ -37,6 +37,9 @@ import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
 import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,6 +60,7 @@ import java.io.StringReader;
 import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,18 +74,29 @@ public class ServicioAppFirmarDocumento {
 
     @EJB
     private ServicioLog servicioLog;
+    
+    @EJB
+    private ServicioToken servicioToken;
 
     private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
 
-    public String firmarDocumento(@NotNull String pkcs12, @NotNull String password,
-            @NotNull String documentoBase64, String versionFirmaEC, String formatoDocumento,
-            String llx, String lly, String pagina, String tipoEstampado, String razon, String base64) {
+    public String firmarDocumento(@NotNull String jwt, @NotNull String pkcs12, 
+            @NotNull String password, @NotNull String documentoBase64, 
+            @NotNull String versionFirmaEC, @NotNull String formatoDocumento,
+            String llx, String lly, String pagina, String tipoEstampado, 
+            String razon, @NotNull String base64) {
         DatosUsuario datosUsuario;
         Documento documento = null;
         String retorno = null;
         byte[] byteDocumentoSigned = null;
         byte[] byteDocumento = java.util.Base64.getDecoder().decode(documentoBase64);
+        String sistemaTransversal;
         try {
+            
+            // Validar JWT y obtener info
+            Map<String, Object> parametros = servicioToken.parseToken(jwt);
+            sistemaTransversal = (String) parametros.get("sistema");
+            
             // Obtener keyStore
             KeyStore keyStore = Pkcs12.getKeyStore(pkcs12, password);
             String alias = Pkcs12.getAlias(keyStore);
@@ -97,6 +112,12 @@ public class ServicioAppFirmarDocumento {
                 Properties properties = Propiedades.propiedades(versionFirmaEC, llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
                 byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, password.toCharArray(), properties, null, base64);
             }
+        } catch (TokenInvalidoException ex) {
+            retorno = "JWT Inválido";
+            return retorno;
+        } catch (TokenExpiradoException ex) {
+            retorno = "JWT expirado";
+            return retorno;
         } catch (BadPasswordException bpe) {
             retorno = "Documento protegido con contraseña";
             throw bpe;

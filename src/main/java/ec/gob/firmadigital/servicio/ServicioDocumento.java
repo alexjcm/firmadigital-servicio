@@ -274,7 +274,7 @@ public class ServicioDocumento {
                         + ", sistema operativo " + obtenerSO(base64)
                         + ", tamano documento (bytes) " + documento.getArchivo().length);
             } catch (SistemaTransversalException e) {
-                String mensajeError = "No se pudo enviar el documento al sistema " + nombreSistema;
+                String mensajeError = "No se pudo enviar el documento al sistema " + nombreSistema + "\nCausa: " + e.getLocalizedMessage();
                 servicioLog.error("ServicioDocumento::actualizarDocumentos", mensajeError);
                 LOGGER.log(Level.SEVERE, mensajeError);
             }

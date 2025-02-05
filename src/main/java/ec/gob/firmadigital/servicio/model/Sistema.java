@@ -16,7 +16,6 @@
 package ec.gob.firmadigital.servicio.model;
 
 import java.io.Serializable;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,8 +28,6 @@ import jakarta.persistence.Id;
  */
 @Entity
 public class Sistema implements Serializable {
-
-    private static final long serialVersionUID = 5588060743829609875L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -84,7 +81,7 @@ public class Sistema implements Serializable {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
-    
+
     public String getApiKeyRest() {
         return apiKeyRest;
     }

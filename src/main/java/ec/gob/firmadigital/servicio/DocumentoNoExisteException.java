@@ -26,8 +26,6 @@ import jakarta.ejb.ApplicationException;
 @ApplicationException(rollback = true)
 public class DocumentoNoExisteException extends Exception {
 
-    private static final long serialVersionUID = -7132855600223954519L;
-
     public DocumentoNoExisteException() {
         super();
     }

@@ -37,7 +37,7 @@ import jakarta.ws.rs.core.MediaType;
  */
 @Stateless
 @Path("/appfirmardocumento")
-public class ServicioAppFirmarDocumentoRest {
+public class ServicioAppFirmarDocumentoRest extends RequestSizeFilter {
 
     @EJB
     private ServicioAppFirmarDocumento servicioAppFirmarDocumento;
@@ -45,9 +45,12 @@ public class ServicioAppFirmarDocumentoRest {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String firmarDocumento(@FormParam("pkcs12") String pkcs12, @FormParam("password") String password,
-            @FormParam("documento") String documento, @FormParam("json") String json, @FormParam("base64") String base64) throws Exception {
-
+    public String firmarDocumento(@FormParam("jwt") String jwt, @FormParam("pkcs12") String pkcs12,
+            @FormParam("password") String password, @FormParam("documento") String documento,
+            @FormParam("json") String json, @FormParam("base64") String base64) throws Exception {
+        if (jwt == null || jwt.isEmpty()) {
+            return "Se debe incluir el parametro jwt";
+        }
         if (pkcs12 == null || pkcs12.isEmpty()) {
             return "Se debe incluir el parametro pkcs12";
         }
@@ -55,11 +58,11 @@ public class ServicioAppFirmarDocumentoRest {
         if (password == null || password.isEmpty()) {
             return "Se debe incluir el parametro password";
         }
-        
+
         if (documento == null || documento.isEmpty()) {
             return "Se debe incluir el parametro documento";
         }
-        
+
         if (json == null || json.isEmpty()) {
             return "Se debe incluir el parametro json";
         }
@@ -128,11 +131,11 @@ public class ServicioAppFirmarDocumentoRest {
         } catch (ClassCastException cce) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"razon\"";
         }
-        
+
         if (base64 == null || base64.isEmpty()) {
             return "Se debe incluir el parametro base64";
         }
-        
-        return servicioAppFirmarDocumento.firmarDocumento(pkcs12, password, documento, versionFirmaEC, formatoDocumento, llx, lly, pagina, tipoEstampado, razon, base64);
+
+        return servicioAppFirmarDocumento.firmarDocumento(jwt, pkcs12, password, documento, versionFirmaEC, formatoDocumento, llx, lly, pagina, tipoEstampado, razon, base64);
     }
 }

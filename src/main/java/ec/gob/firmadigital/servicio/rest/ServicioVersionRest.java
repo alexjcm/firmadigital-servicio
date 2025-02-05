@@ -77,7 +77,6 @@ public class ServicioVersionRest {
         String sistemaOperativo;
         String aplicacion;
         String versionApp;
-        String sha;
 
         try {
             sistemaOperativo = json.getString("sistemaOperativo");
@@ -94,14 +93,9 @@ public class ServicioVersionRest {
         } catch (NullPointerException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
         }
-        try {
-            sha = json.getString("sha");
-        } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sha\"";
-        }
 
         try {
-            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp, sha);
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
         } catch (ServicioVersionException e) {
             return "versión no encontrada";
         }

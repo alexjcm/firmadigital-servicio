@@ -62,6 +62,13 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Servicio para invocar Web Services de los sistemas transaccionales, utilizado
@@ -257,6 +264,14 @@ public class ServicioSistemaTransversal {
      */
     public void almacenarDocumento(String usuario, String documento, String archivo, String datosFirmante, URL url) throws SistemaTransversalException {
         try {
+            //quitar produccion
+            try {
+                disableCertificateValidation();
+            } catch (Exception ex) {
+                Logger.getLogger(ServicioSistemaTransversal.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            //quitar produccion
+
             MessageFactory factory = MessageFactory.newInstance();
             SOAPMessage soapMessage = factory.createMessage();
             SOAPBody body = soapMessage.getSOAPBody();
@@ -315,6 +330,35 @@ public class ServicioSistemaTransversal {
         }
     }
 
+    //quitar produccion
+    private static void disableCertificateValidation() throws Exception {
+        // Configurar TrustManager que acepte todos los certificados
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+        // Inicializar el contexto SSL con el TrustManager personalizado
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, trustAllCerts, new SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        // Configurar el hostname verifier para ignorar la validación de nombre de host
+        HttpsURLConnection.setDefaultHostnameVerifier((String hostname, SSLSession session) -> true // Acepta todos los nombres de host
+        );
+    }
+    //quitar produccion
+
     public boolean verificarApiKey(String nombre, String apiKey) {
         // Verificar si existe el Sistema
         Sistema sistema;
@@ -329,14 +373,18 @@ public class ServicioSistemaTransversal {
         String apiKeySistema = sistema.getApiKey().toUpperCase();
         LOGGER.log(Level.FINE, "apiKeySistema={0}", apiKey);
 
-        // Si no tiene API Key
+        // Si no tiene API KEY
         if (apiKeySistema == null) {
             LOGGER.log(Level.WARNING, "API KEY is null, sistema={0}", nombre);
             return false;
         }
 
-        String hash = hashSha256(apiKey).toUpperCase();
-        return apiKeySistema.equals(hash);
+        // Si no tiene problemas el API KEY
+        if (!apiKeySistema.equals(hashSha256(apiKey).toUpperCase())) {
+            LOGGER.log(Level.WARNING, "API KEY tiene problemas");
+            return false;
+        }
+        return true;
     }
 
     private String hashSha256(String apiKey) {

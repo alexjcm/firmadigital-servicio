@@ -95,7 +95,7 @@ public class ServicioTokenJwt implements ServicioToken {
                 this.secretKey = decodificarLlaveSecreta(keyBase64);
                 LOGGER.info("Se creo una llave secreta a partir de la propiedad de sistema \"jwt.key\"");
                 return;
-            } catch (Throwable e) {
+            } catch (Base64InvalidoException e) {
                 LOGGER.log(Level.SEVERE,
                         "ERROR: No se pudo crear una llave secreta a partir de la propiedad \"jwt.key\"", e);
             }

@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.ejb.Stateless;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
@@ -61,9 +62,12 @@ import jakarta.ws.rs.core.Response;
 @Stateless
 public class ServicioAppFirmarDocumentoTransversal {
 
-    private final String REST_SERVICE_URL_PREPRODUCCION = "https://impws.firmadigital.gob.ec/servicio/documentos/";
-    private final String REST_SERVICE_URL_DESARROLLO = "http://testws.firmadigital.gob.ec:8080/servicio/documentos/";
-    private final String REST_SERVICE_URL_PRODUCCION = "http://wsmobile.firmadigital.gob.ec:8080/servicio/documentos/";
+    /**
+     * Nombre de la propiedad de sistema que contiene el servicio web
+     */
+    private static final String WS_SYSTEM_PROPERTY_PREPRODUCCION = "firmadigital-servicio-mobile-preproduccion";
+    private static final String WS_SYSTEM_PROPERTY_DESARROLLO = "firmadigital-servicio-mobile-desarrollo";
+    private static final String WS_SYSTEM_PROPERTY_PRODUCCION = "firmadigital-servicio-mobile-produccion";
 
     private String restServiceUrl;
     private static final Logger LOGGER = Logger.getLogger(ServicioAppFirmarDocumentoTransversal.class.getName());
@@ -84,10 +88,11 @@ public class ServicioAppFirmarDocumentoTransversal {
 
     private String cedula;
 
-    public String firmarTransversal(String pkcs12, String password, String sistema,
-            String operacion, String url, String versionFirmaEC, String formatoDocumento,
-            String tokenJwt, String llx, String lly, String pagina, String tipoEstampado,
-            String razon, boolean pre, boolean des, String base64) throws Exception {
+    public String firmarTransversal(@NotNull String pkcs12, @NotNull String password, 
+            @NotNull String sistema, @NotNull String operacion, @NotNull String url, 
+            @NotNull String versionFirmaEC, String formatoDocumento, @NotNull String tokenJwt, 
+            String llx, String lly, String pagina, String tipoEstampado, String razon, 
+            boolean pre, boolean des, @NotNull String base64) throws Exception {
         // Parametros opcionales
         this.sistema = sistema;
         this.versionFirmaEC = versionFirmaEC;
@@ -125,11 +130,11 @@ public class ServicioAppFirmarDocumentoTransversal {
     private void ambiente() {
         // Invocar el servicio de Preproduccio o Produccion?
         if (pre) {
-            restServiceUrl = REST_SERVICE_URL_PREPRODUCCION;
+            restServiceUrl = System.getProperty(WS_SYSTEM_PROPERTY_PREPRODUCCION);
         } else if (des) {
-            restServiceUrl = REST_SERVICE_URL_DESARROLLO;
+            restServiceUrl = System.getProperty(WS_SYSTEM_PROPERTY_DESARROLLO);
         } else {
-            restServiceUrl = REST_SERVICE_URL_PRODUCCION;
+            restServiceUrl = System.getProperty(WS_SYSTEM_PROPERTY_PRODUCCION);
         }
     }
 

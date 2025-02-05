@@ -56,11 +56,10 @@ public class ServicioVersion {
      * @param sistemaOperativo
      * @param aplicacion
      * @param versionApp
-     * @param sha
      * @return
      * @throws ServicioVersionException
      */
-    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp, @NotNull String sha) throws ServicioVersionException {
+    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp) throws ServicioVersionException {
         String retorno = "";
         com.google.gson.JsonObject gsonObject = null;
         try {
@@ -73,29 +72,29 @@ public class ServicioVersion {
             if (version.getStatus()) {
                 retorno = "Version enabled";
                 servicioLog.info("ServicioVersion::validarVersion",
-                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
+                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             } else {
                 retorno = "Version disabled";
                 servicioLog.warning("ServicioVersion::validarVersion",
-                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
+                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             }
         } catch (NoResultException e) {
             retorno = "Versión no encontrado";
             LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
+                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (NonUniqueResultException e) {
             retorno = "Varias Versiones registradas";
             LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
+                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (java.lang.NullPointerException e) {
             retorno = "Revisar el estado de la URL registrada";
             LOGGER.severe(retorno);
             servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
+                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } finally {
             gsonObject = new com.google.gson.JsonObject();

@@ -44,6 +44,21 @@ public class ServicioJWT {
     private ServicioSistemaTransversal servicioSistemaTransversal;
 
     /**
+     * Application Configuracion using System Properties.
+     *
+     * Se debe almacenar en el archivo de configuracion del servidor WildFly
+     * (standalone.xml), asi:
+     *
+     * <system-properties>
+     * <property name="jwt.time" value= "15" />
+     * </system-properties>
+     *
+     * Nombre de la propiedad de sistema que contiene el servicio web (valor en 
+     * segundos)
+     */
+    private static final String JWT_TIME_SYSTEM_PROPERTY = "jwt.time";
+
+    /**
      * genera un token bajo el estándar JWT
      *
      * @param apiKey
@@ -53,13 +68,14 @@ public class ServicioJWT {
      * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public String getJWT(@NotNull String apiKey, @NotNull String sistemaTransversal) throws ServicioSistemaTransversalException {
+        int jwtTime = (System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) != null ? Integer.parseInt(System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) : 100;
         if (servicioSistemaTransversal.verificarApiKey(sistemaTransversal, apiKey)) {
             Map<String, Object> parametros = new HashMap<>();
             if (apiKey.equals(apiKey)) {
                 parametros.put("sistema", sistemaTransversal);
             }
             // Expiracion del Token
-            Date expiracion = TokenTimeout.addSeconds(new Date(), 5);//segundos
+            Date expiracion = TokenTimeout.addSeconds(new Date(), jwtTime);//segundos
             // Retorna el Token
             return UtilsJson.generarJsonResponse(
                     200,

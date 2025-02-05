@@ -23,8 +23,6 @@ package ec.gob.firmadigital.servicio.exception;
  */
 public class ServicioValidarCertificadoDigitalException extends Exception {
 
-    private static final long serialVersionUID = 1093880787253700672L;
-
     public ServicioValidarCertificadoDigitalException() {
         super();
     }

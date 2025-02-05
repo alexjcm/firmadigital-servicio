@@ -26,10 +26,15 @@ import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  *
@@ -39,10 +44,18 @@ import jakarta.validation.constraints.NotNull;
 @Stateless
 public class ServicioAppVerificarDocumento {
 
-    public String verificarDocumento(@NotNull String base64Documento, @NotNull String base64) {
+    @EJB
+    private ServicioToken servicioToken;
+    
+    public String verificarDocumento(@NotNull String jwt, @NotNull String base64Documento, @NotNull String base64) {
         String retorno = null;
         Documento documento = null;
+        String sistemaTransversal;
         try {
+            // Validar JWT y obtener info
+            Map<String, Object> parametros = servicioToken.parseToken(jwt);
+            sistemaTransversal = (String) parametros.get("sistema");
+            
             byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
             InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
             PdfReader pdfReader = new PdfReader(inputStreamDocumento);
@@ -50,6 +63,12 @@ public class ServicioAppVerificarDocumento {
             java.util.List<SignInfo> signInfos;
             signInfos = signer.getSigners(byteDocumento);
             documento = pdfToDocumento(pdfReader, signInfos);
+        } catch (TokenInvalidoException ex) {
+            retorno = "JWT Inválido";
+            return retorno;
+        } catch (TokenExpiradoException ex) {
+            retorno = "JWT expirado";
+            return retorno;
         } catch (java.lang.UnsupportedOperationException uoe) {
             retorno = "No es posible procesar el documento desde dispositivo móvil\nIntentar en FirmaEC de Escritorio";
         } catch (com.itextpdf.io.IOException ioe) {

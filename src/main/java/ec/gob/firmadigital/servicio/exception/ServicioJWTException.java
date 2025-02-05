@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ec.gob.firmadigital.servicio.exception;
 
 /**
@@ -22,10 +21,7 @@ package ec.gob.firmadigital.servicio.exception;
  *
  * @author Misael Fernández
  */
-
 public class ServicioJWTException extends Exception {
-
-    private static final long serialVersionUID = 5869629673463604058L;
 
     public ServicioJWTException() {
         super();

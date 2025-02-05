@@ -22,8 +22,6 @@ package ec.gob.firmadigital.servicio;
  */
 public class CertificadoRevocadoException extends Exception {
 
-    private static final long serialVersionUID = 1093880787253700671L;
-
     public CertificadoRevocadoException() {
         super();
     }

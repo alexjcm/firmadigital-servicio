@@ -19,8 +19,6 @@ import java.net.URISyntaxException;
 
 public class ProtocoloInvalidoException extends Exception {
 
-    private static final long serialVersionUID = 6491132940384665796L;
-
     public ProtocoloInvalidoException(String message) {
         super(message);
     }

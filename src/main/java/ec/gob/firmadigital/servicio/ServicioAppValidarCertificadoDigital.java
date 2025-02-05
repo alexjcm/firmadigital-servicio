@@ -44,9 +44,14 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import ec.gob.firmadigital.libreria.utils.Json;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import jakarta.ejb.EJB;
 
 import jakarta.ejb.Stateless;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * Buscar en una lista de URLs permitidos para utilizar como API. Esto permite
@@ -59,6 +64,9 @@ import jakarta.validation.constraints.NotNull;
 @Stateless
 public class ServicioAppValidarCertificadoDigital {
 
+    @EJB
+    private ServicioToken servicioToken;
+
     /**
      * Busca un ApiUrl por URL.
      *
@@ -67,12 +75,18 @@ public class ServicioAppValidarCertificadoDigital {
      * @param base64
      * @return json
      */
-    public String appValidarCertificadoDigital(@NotNull String pkcs12, @NotNull String password, @NotNull String base64) {
+    public String appValidarCertificadoDigital(@NotNull String jwt,
+            @NotNull String pkcs12, @NotNull String password, @NotNull String base64) {
         Certificado certificado = null;
         String retorno = null;
         boolean expirado = true, revocado = true;
+        String sistemaTransversal;
 
         try {
+            // Validar JWT y obtener info
+            Map<String, Object> parametros = servicioToken.parseToken(jwt);
+            sistemaTransversal = (String) parametros.get("sistema");
+
             byte encodedPkcs12[] = Base64.getDecoder().decode(pkcs12);
             InputStream inputStreamPkcs12 = new ByteArrayInputStream(encodedPkcs12);
 
@@ -113,6 +127,12 @@ public class ServicioAppValidarCertificadoDigital {
                     expirado,
                     datosUsuario);
             certificado.setKeyUsages(Utils.validacionKeyUsages(x509Certificate));
+        } catch (TokenInvalidoException ex) {
+            retorno = "JWT Inválido";
+            return retorno;
+        } catch (TokenExpiradoException ex) {
+            retorno = "JWT expirado";
+            return retorno;
         } catch (KeyStoreException kse) {
             if (kse.getCause().toString().contains("Invalid keystore format")) {
                 retorno = "Certificado digital es inválido.";

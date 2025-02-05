@@ -23,8 +23,6 @@ package ec.gob.firmadigital.servicio;
  */
 public class SistemaTransversalException extends Exception {
 
-    private static final long serialVersionUID = -7132855600223954519L;
-
     public SistemaTransversalException() {
         super();
     }

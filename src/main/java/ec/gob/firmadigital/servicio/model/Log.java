@@ -38,8 +38,6 @@ public class Log implements Serializable {
         INFO, WARNING, ERROR
     }
 
-    private static final long serialVersionUID = -4149737307219333116L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

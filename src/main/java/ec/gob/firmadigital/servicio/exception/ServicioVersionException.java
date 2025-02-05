@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ec.gob.firmadigital.servicio.exception;
 
 /**
@@ -23,10 +22,7 @@ package ec.gob.firmadigital.servicio.exception;
  * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
  * Fernández
  */
-
 public class ServicioVersionException extends Exception {
-
-    private static final long serialVersionUID = 5869629673463604058L;
 
     public ServicioVersionException() {
     }

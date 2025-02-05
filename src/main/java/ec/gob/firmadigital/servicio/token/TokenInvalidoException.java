@@ -22,8 +22,6 @@ package ec.gob.firmadigital.servicio.token;
  */
 public class TokenInvalidoException extends Exception {
 
-    private static final long serialVersionUID = 6309875307360686262L;
-
     public TokenInvalidoException() {
         super();
     }
