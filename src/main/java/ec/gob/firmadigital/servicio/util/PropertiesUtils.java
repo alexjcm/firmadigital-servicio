@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author mfernandez
+ * @author Misael Fernández
  */
 public class PropertiesUtils {
 

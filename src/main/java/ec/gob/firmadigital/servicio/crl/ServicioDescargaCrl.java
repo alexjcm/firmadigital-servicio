@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  */
 @Singleton
 //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
-@Startup
+//@Startup
 //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
 public class ServicioDescargaCrl {
 
@@ -62,18 +62,18 @@ public class ServicioDescargaCrl {
     private static final Logger LOGGER = Logger.getLogger(ServicioDescargaCrl.class.getName());
 
     //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
-    @PostConstruct
-    public void init() {
-        crearTablaSiNoExiste();
-        importarCrls();
-    }
-
-    //10 segundos
-    //@Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
-    //5 minutos
-    @Schedule(hour = "*", minute = "*/5", persistent = false)
-    //1 hora
-    //@Schedule(minute = "0", hour = "*", persistent = false)
+//    @PostConstruct
+//    public void init() {
+//        crearTablaSiNoExiste();
+//        importarCrls();
+//    }
+//
+//    //10 segundos
+//    //@Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
+//    //5 minutos
+//    @Schedule(hour = "*", minute = "*/5", persistent = false)
+//    //1 hora
+//    //@Schedule(minute = "0", hour = "*", persistent = false)
     //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
 
     public void importarCrls() {

@@ -18,7 +18,7 @@ package ec.gob.firmadigital.servicio.rest;
 
 /**
  *
- * @author mfernandez
+ * @author Misael Fernández
  */
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -29,6 +29,19 @@ import java.io.IOException;
 @Provider
 public class RequestSizeFilter implements ContainerRequestFilter {
 
+    /**
+     * Application Configuracion using System Properties.
+     *
+     * Se debe almacenar en el archivo de configuracion del servidor WildFly
+     * (standalone.xml):
+     *
+     * <property name="firmadigital-servicio-mobile.appverificardocumento.request.size" value= "XX" />
+     * <property name="firmadigital-servicio-mobile.appvalidarcertificadodigital.request.size" value= "XX" />
+     * <property name="firmadigital-servicio-mobile.appfirmardocumento.request.size" value= "XX" />
+     * <property name="firmadigital-servicio-mobile.appfirmardocumentotransversal.request.size" value= "XX" />
+     *
+     * Nombre de las propiedades que contiene el servicio web (valor en KB)
+     */
     private static String REQUEST_SIZE_SYSTEM_PROPERTY = null;
 
     @Override
@@ -46,7 +59,7 @@ public class RequestSizeFilter implements ContainerRequestFilter {
             case "appfirmardocumentotransversal" -> {
                 REQUEST_SIZE_SYSTEM_PROPERTY = "firmadigital-servicio-mobile.appfirmardocumentotransversal.request.size";
             }
-            default ->{
+            default -> {
                 REQUEST_SIZE_SYSTEM_PROPERTY = "firmadigital-servicio.request.size";
             }
 

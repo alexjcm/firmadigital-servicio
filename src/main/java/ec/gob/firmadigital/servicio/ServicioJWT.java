@@ -41,7 +41,7 @@ public class ServicioJWT {
     private ServicioToken servicioToken;
 
     @EJB
-    private ServicioSistemaTransversal servicioSistemaTransversal;
+    private ServicioSistemaMobile servicioSistemaMobile;
 
     /**
      * Application Configuracion using System Properties.
@@ -50,7 +50,7 @@ public class ServicioJWT {
      * (standalone.xml), asi:
      *
      * <system-properties>
-     * <property name="jwt.time" value= "15" />
+     * <property name="jwt.time" value= "XX" />
      * </system-properties>
      *
      * Nombre de la propiedad de sistema que contiene el servicio web (valor en 
@@ -69,7 +69,7 @@ public class ServicioJWT {
      */
     public String getJWT(@NotNull String apiKey, @NotNull String sistemaTransversal) throws ServicioSistemaTransversalException {
         int jwtTime = (System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) != null ? Integer.parseInt(System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) : 100;
-        if (servicioSistemaTransversal.verificarApiKey(sistemaTransversal, apiKey)) {
+        if (servicioSistemaMobile.verificarApiKeyMobile(sistemaTransversal, apiKey)) {
             Map<String, Object> parametros = new HashMap<>();
             if (apiKey.equals(apiKey)) {
                 parametros.put("sistema", sistemaTransversal);
@@ -84,7 +84,7 @@ public class ServicioJWT {
         } else {
             return UtilsJson.generarJsonResponse(
                     500,
-                    "La información enviada no concuerda con la registrada en FirmaEC",
+                    "La información enviada no concuerda con la registrada en FirmaEC Mobile",
                     null);
         }
     }

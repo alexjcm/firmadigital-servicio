@@ -42,9 +42,6 @@ import jakarta.ejb.EJB;
 @Stateless
 public class ServicioVersion {
 
-    @EJB
-    private ServicioLog servicioLog;
-
     @PersistenceContext
     private EntityManager em;
 
@@ -71,30 +68,17 @@ public class ServicioVersion {
             Version version = query.getSingleResult();
             if (version.getStatus()) {
                 retorno = "Version enabled";
-                servicioLog.info("ServicioVersion::validarVersion",
-                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             } else {
                 retorno = "Version disabled";
-                servicioLog.warning("ServicioVersion::validarVersion",
-                        "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             }
         } catch (NoResultException e) {
             retorno = "Versión no encontrado";
-            LOGGER.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (NonUniqueResultException e) {
             retorno = "Varias Versiones registradas";
-            LOGGER.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (java.lang.NullPointerException e) {
             retorno = "Revisar el estado de la URL registrada";
-            LOGGER.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } finally {
             gsonObject = new com.google.gson.JsonObject();

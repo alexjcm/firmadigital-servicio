@@ -63,7 +63,8 @@ import jakarta.ws.rs.core.Response;
 public class ServicioAppFirmarDocumentoTransversal {
 
     /**
-     * Nombre de la propiedad de sistema que contiene el servicio web
+     * Nombre de la propiedad de sistema que contiene el archivo de
+     * configuracion del servidor WildFly (standalone.xml)
      */
     private static final String WS_SYSTEM_PROPERTY_PREPRODUCCION = "firmadigital-servicio-mobile-preproduccion";
     private static final String WS_SYSTEM_PROPERTY_DESARROLLO = "firmadigital-servicio-mobile-desarrollo";
@@ -88,10 +89,10 @@ public class ServicioAppFirmarDocumentoTransversal {
 
     private String cedula;
 
-    public String firmarTransversal(@NotNull String pkcs12, @NotNull String password, 
-            @NotNull String sistema, @NotNull String operacion, @NotNull String url, 
-            @NotNull String versionFirmaEC, String formatoDocumento, @NotNull String tokenJwt, 
-            String llx, String lly, String pagina, String tipoEstampado, String razon, 
+    public String firmarTransversal(@NotNull String pkcs12, @NotNull String password,
+            @NotNull String sistema, @NotNull String operacion, @NotNull String url,
+            @NotNull String versionFirmaEC, String formatoDocumento, @NotNull String tokenJwt,
+            String llx, String lly, String pagina, String tipoEstampado, String razon,
             boolean pre, boolean des, @NotNull String base64) throws Exception {
         // Parametros opcionales
         this.sistema = sistema;

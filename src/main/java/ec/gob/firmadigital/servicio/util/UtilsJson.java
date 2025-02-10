@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 
 /**
  *
- * @author mfernandez
+ * @author Misael Fernández
  */
 public class UtilsJson {
 
