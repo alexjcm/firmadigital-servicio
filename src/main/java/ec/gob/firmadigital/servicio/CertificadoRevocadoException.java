@@ -18,7 +18,7 @@ package ec.gob.firmadigital.servicio;
 /**
  * Excepcion lanzada en caso de que el certificado esté revocado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class CertificadoRevocadoException extends Exception {
 

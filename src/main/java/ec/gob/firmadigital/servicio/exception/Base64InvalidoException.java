@@ -19,7 +19,7 @@ package ec.gob.firmadigital.servicio.exception;
  * Excepción lanzada cuando no se puede decodificar un cadena de texto en
  * Base64.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class Base64InvalidoException extends Exception {
 

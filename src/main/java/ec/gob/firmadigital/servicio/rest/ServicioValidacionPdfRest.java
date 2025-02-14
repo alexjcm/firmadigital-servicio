@@ -17,19 +17,16 @@
  */
 package ec.gob.firmadigital.servicio.rest;
 
-import com.google.gson.Gson;
-
-import com.google.gson.JsonArray;
 import ec.gob.firmadigital.libreria.certificate.to.Certificado;
 import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.utils.Utils;
-import com.google.gson.JsonObject;
-import com.itextpdf.kernel.pdf.PdfReader;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
-import java.io.ByteArrayInputStream;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -38,6 +35,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -59,12 +57,10 @@ public class ServicioValidacionPdfRest {
         Signer signer = new BasePdfSigner();
         java.util.List<SignInfo> signInfos;
         signInfos = signer.getSigners(byteDocumento);
-
         try {
             Documento documento = Utils.pdfToDocumento(pdfReader, signInfos);
             Gson gson = new Gson();
             JsonObject jsonDoc = new JsonObject();
-
             if (documento.getError() == null) {
                 jsonDoc.addProperty("firmasValidas", documento.getSignValidate());
                 jsonDoc.addProperty("integridadDocumento", documento.getDocValidate());
@@ -98,15 +94,12 @@ public class ServicioValidacionPdfRest {
                 }
                 jsonDoc.add("certificado", arrayCer);
                 String json = gson.toJson(jsonDoc);
-
                 return Response.ok(json, MediaType.APPLICATION_JSON).build();
-
             } else {
                 jsonDoc.addProperty("firmasValidas", false);
                 jsonDoc.addProperty("integridadDocumento", false);
                 jsonDoc.addProperty("error", documento.getError());
                 String json = gson.toJson(jsonDoc);
-
                 return Response.ok(json, MediaType.APPLICATION_JSON).build();
             }
         } catch (Exception exception) {
@@ -116,7 +109,6 @@ public class ServicioValidacionPdfRest {
             jsonDoc.addProperty("integridadDocumento", false);
             jsonDoc.addProperty("error", "El archivo no pudo ser validado o no es un PDF");
             String json = gson.toJson(jsonDoc);
-
             return Response.status(Status.BAD_REQUEST).entity(json).build();
         }
     }

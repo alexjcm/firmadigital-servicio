@@ -16,53 +16,72 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.pdf.PdfReader;
-import jakarta.ejb.Stateless;
-
+import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
-import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import com.itextpdf.kernel.pdf.PdfReader;
+import jakarta.ejb.Stateless;
 import jakarta.ejb.EJB;
+import jakarta.json.JsonReader;
+import jakarta.json.stream.JsonParsingException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import jakarta.validation.constraints.NotNull;
-import java.util.Map;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Base64;
 
 /**
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioAppVerificarDocumento {
 
     @EJB
     private ServicioToken servicioToken;
-    
-    public String verificarDocumento(@NotNull String jwt, @NotNull String base64Documento, @NotNull String base64) {
+
+    @EJB
+    private ServicioVersion servicioVersion;
+
+    /**
+     * appVerificarDocumento
+     *
+     * @param jwt
+     * @param base64Documento
+     * @return json
+     */
+    public String appVerificarDocumento(@NotNull String jwt, @NotNull String base64Documento, @NotNull String base64) {
         String retorno = null;
         Documento documento = null;
-        String sistemaTransversal;
         try {
-            // Validar JWT y obtener info
-            Map<String, Object> parametros = servicioToken.parseToken(jwt);
-            sistemaTransversal = (String) parametros.get("sistema");
-            
-            byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
-            InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
-            PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-            Signer signer = new BasePdfSigner();
-            java.util.List<SignInfo> signInfos;
-            signInfos = signer.getSigners(byteDocumento);
-            documento = pdfToDocumento(pdfReader, signInfos);
+            // Validar JWT
+            servicioToken.parseToken(jwt);
+
+            // Validar Version
+            String version = buscarVersion(base64);
+            System.out.println("version: " + "|" + version + "|");
+            if (version.contains("Version enabled")) {
+                byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
+                InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
+                PdfReader pdfReader = new PdfReader(inputStreamDocumento);
+                Signer signer = new BasePdfSigner();
+                java.util.List<SignInfo> signInfos;
+                signInfos = signer.getSigners(byteDocumento);
+                documento = pdfToDocumento(pdfReader, signInfos);
+            } else {
+                retorno = version;
+            }
         } catch (TokenInvalidoException ex) {
             retorno = "JWT Inválido";
             return retorno;
@@ -82,5 +101,51 @@ public class ServicioAppVerificarDocumento {
             documento = new Documento(false, false, new ArrayList<>(), retorno);
         }
         return Json.generarJsonDocumento(documento);
+    }
+
+    private String buscarVersion(String base64) {
+        if (base64 == null || base64.isEmpty()) {
+            return "Se debe generar en Base64";
+        }
+        String jsonParameter;
+        try {
+            jsonParameter = new String(Base64.getDecoder().decode(base64));
+        } catch (IllegalArgumentException e) {
+            return getClass().getSimpleName() + "::Error al decodificar base64: \"" + e.getMessage();
+        }
+        if (jsonParameter == null || jsonParameter.isEmpty()) {
+            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion y versionApp";
+        }
+        jakarta.json.JsonObject json;
+        try {
+            JsonReader jsonReader = jakarta.json.Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
+            json = (jakarta.json.JsonObject) jsonReader.read();
+        } catch (JsonParsingException | UnsupportedEncodingException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
+        }
+
+        String sistemaOperativo;
+        String aplicacion;
+        String versionApp;
+        try {
+            sistemaOperativo = json.getString("sistemaOperativo");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaOperativo\"";
+        }
+        try {
+            aplicacion = json.getString("aplicacion");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"aplicacion\"";
+        }
+        try {
+            versionApp = json.getString("versionApp");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
+        }
+        try {
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
+        } catch (ServicioVersionException e) {
+            return "versión no encontrada";
+        }
     }
 }

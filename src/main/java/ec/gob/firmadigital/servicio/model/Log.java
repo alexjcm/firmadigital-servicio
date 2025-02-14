@@ -26,7 +26,7 @@ import jakarta.persistence.Id;
 /**
  * Representa una entrada de log.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 public class Log implements Serializable {

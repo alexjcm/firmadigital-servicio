@@ -19,7 +19,7 @@ package ec.gob.firmadigital.servicio;
 /**
  * Excepcion lanzada en caso de que no se encuentre un ApiUrl.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class ApiUrlNoEncontradoException extends Exception {
 

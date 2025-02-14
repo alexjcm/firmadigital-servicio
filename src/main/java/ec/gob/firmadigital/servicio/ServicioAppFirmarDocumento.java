@@ -16,8 +16,7 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.crypto.BadPasswordException;
-import com.itextpdf.kernel.pdf.PdfReader;
+import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
 import ec.gob.firmadigital.servicio.util.Pkcs12;
@@ -36,10 +35,12 @@ import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
-import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import com.itextpdf.kernel.crypto.BadPasswordException;
+import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,63 +55,72 @@ import java.util.Properties;
 import jakarta.ejb.Stateless;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.stream.JsonParsingException;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioAppFirmarDocumento {
 
     @EJB
     private ServicioLog servicioLog;
-    
+
     @EJB
     private ServicioToken servicioToken;
 
+    @EJB
+    private ServicioVersion servicioVersion;
+
     private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento.class.getName());
 
-    public String firmarDocumento(@NotNull String jwt, @NotNull String pkcs12, 
-            @NotNull String password, @NotNull String documentoBase64, 
+    public String firmarDocumento(@NotNull String jwt, @NotNull String pkcs12,
+            @NotNull String password, @NotNull String documentoBase64,
             @NotNull String versionFirmaEC, @NotNull String formatoDocumento,
-            String llx, String lly, String pagina, String tipoEstampado, 
+            String llx, String lly, String pagina, String tipoEstampado,
             String razon, @NotNull String base64) {
-        DatosUsuario datosUsuario;
+        DatosUsuario datosUsuario = null;
         Documento documento = null;
         String retorno = null;
         byte[] byteDocumentoSigned = null;
         byte[] byteDocumento = java.util.Base64.getDecoder().decode(documentoBase64);
-        String sistemaTransversal;
         try {
-            
             // Validar JWT y obtener info
-            Map<String, Object> parametros = servicioToken.parseToken(jwt);
-            sistemaTransversal = (String) parametros.get("sistema");
-            
-            // Obtener keyStore
-            KeyStore keyStore = Pkcs12.getKeyStore(pkcs12, password);
-            String alias = Pkcs12.getAlias(keyStore);
-            datosUsuario = CertEcUtils.getDatosUsuarios((X509Certificate) keyStore.getCertificate(alias));
+            servicioToken.parseToken(jwt);
 
-            String fechaHora = TiempoUtils.getFechaHoraServidor(null, base64);
+            // Validar Version
+            String version = buscarVersion(base64);
+            if (version.contains("Version enabled")) {
+                // Obtener keyStore
+                String decodedPassword = new String(Base64.getDecoder().decode(password));
+                KeyStore keyStore = Pkcs12.getKeyStore(pkcs12, decodedPassword);
+                String alias = Pkcs12.getAlias(keyStore);
 
-            FirmaDigital firmador = new FirmaDigital();
-            if ("xml".equalsIgnoreCase(formatoDocumento)) {
-                byteDocumentoSigned = firmador.firmarXML(keyStore, alias, byteDocumento, password.toCharArray(), null, null, base64);
-            }
-            if ("pdf".equalsIgnoreCase(formatoDocumento)) {
-                Properties properties = Propiedades.propiedades(versionFirmaEC, llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
-                byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, password.toCharArray(), properties, null, base64);
+                datosUsuario = CertEcUtils.getDatosUsuarios((X509Certificate) keyStore.getCertificate(alias));
+
+                String fechaHora = TiempoUtils.getFechaHoraServidor(null, base64);
+
+                FirmaDigital firmador = new FirmaDigital();
+                if ("xml".equalsIgnoreCase(formatoDocumento)) {
+                    byteDocumentoSigned = firmador.firmarXML(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), null, null, base64);
+                }
+                if ("pdf".equalsIgnoreCase(formatoDocumento)) {
+                    Properties properties = Propiedades.propiedades(versionFirmaEC, llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
+                    byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), properties, null, base64);
+                }
+            } else {
+                retorno = version;
             }
         } catch (TokenInvalidoException ex) {
             retorno = "JWT Inválido";
@@ -212,6 +222,52 @@ public class ServicioAppFirmarDocumento {
             return DatatypeConverter.printHexBinary(digest).toLowerCase();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private String buscarVersion(String base64) {
+        if (base64 == null || base64.isEmpty()) {
+            return "Se debe generar en Base64";
+        }
+        String jsonParameter;
+        try {
+            jsonParameter = new String(Base64.getDecoder().decode(base64));
+        } catch (IllegalArgumentException e) {
+            return getClass().getSimpleName() + "::Error al decodificar base64: \"" + e.getMessage();
+        }
+        if (jsonParameter == null || jsonParameter.isEmpty()) {
+            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion y versionApp";
+        }
+        jakarta.json.JsonObject json;
+        try {
+            JsonReader jsonReader = jakarta.json.Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
+            json = (jakarta.json.JsonObject) jsonReader.read();
+        } catch (JsonParsingException | UnsupportedEncodingException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
+        }
+
+        String sistemaOperativo;
+        String aplicacion;
+        String versionApp;
+        try {
+            sistemaOperativo = json.getString("sistemaOperativo");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaOperativo\"";
+        }
+        try {
+            aplicacion = json.getString("aplicacion");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"aplicacion\"";
+        }
+        try {
+            versionApp = json.getString("versionApp");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
+        }
+        try {
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
+        } catch (ServicioVersionException e) {
+            return "versión no encontrada";
         }
     }
 }

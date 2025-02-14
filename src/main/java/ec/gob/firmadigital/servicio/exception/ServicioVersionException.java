@@ -19,8 +19,7 @@ package ec.gob.firmadigital.servicio.exception;
 /**
  * Excepcion lanzada en caso de problemas en la versión.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 public class ServicioVersionException extends Exception {
 

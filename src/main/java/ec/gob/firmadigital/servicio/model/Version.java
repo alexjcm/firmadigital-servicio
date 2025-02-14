@@ -27,8 +27,7 @@ import jakarta.persistence.NamedQuery;
 /**
  * Representa un sistema transversal.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Entity
 @NamedQuery(name = "Version.validarVersion", query = "SELECT v FROM Version v WHERE v.version= :version AND v.sistemaOperativo= :sistema_operativo AND v.aplicacion= :aplicacion")

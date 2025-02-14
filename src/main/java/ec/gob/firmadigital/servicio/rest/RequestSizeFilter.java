@@ -62,7 +62,6 @@ public class RequestSizeFilter implements ContainerRequestFilter {
             default -> {
                 REQUEST_SIZE_SYSTEM_PROPERTY = "firmadigital-servicio.request.size";
             }
-
         }
         int maxRequestSize = (System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) != null
                 ? Integer.parseInt(System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) : 51200;//KB

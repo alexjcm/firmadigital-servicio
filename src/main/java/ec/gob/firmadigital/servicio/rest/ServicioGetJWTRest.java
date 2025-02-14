@@ -54,11 +54,9 @@ public class ServicioGetJWTRest {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_PLAIN)
     public String getJWT(@HeaderParam(API_KEY_HEADER_PARAMETER) String apiKey, @FormParam("base64") String base64) {
-
         if (apiKey == null) {
             return "Se debe incluir un apiKey";
         }
-
         if (base64 == null || base64.isEmpty()) {
             return "Se debe generar en Base64";
         }
@@ -68,11 +66,9 @@ public class ServicioGetJWTRest {
         } catch (IllegalArgumentException e) {
             return getClass().getSimpleName() + "::Error al decodificar base64: \"" + e.getMessage();
         }
-
         if (jsonParameter == null || jsonParameter.isEmpty()) {
             return "Se debe incluir JSON con los parámetros: sistemaTransversal";
         }
-
         jakarta.json.JsonObject json;
         try {
             JsonReader jsonReader = Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
@@ -80,15 +76,12 @@ public class ServicioGetJWTRest {
         } catch (JsonParsingException | UnsupportedEncodingException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
         }
-
         String sistemaTransversal;
-
         try {
             sistemaTransversal = json.getString("sistemaTransversal");
         } catch (NullPointerException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaTransversal\"";
         }
-
         try {
             return servicioJWT.getJWT(apiKey, sistemaTransversal);
         } catch (ServicioSistemaTransversalException e) {

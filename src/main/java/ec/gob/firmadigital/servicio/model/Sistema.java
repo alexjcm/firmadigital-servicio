@@ -24,7 +24,7 @@ import jakarta.persistence.Id;
 /**
  * Representa un sistema transversal.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 public class Sistema implements Serializable {

@@ -17,8 +17,9 @@
 package ec.gob.firmadigital.servicio;
 
 import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
-import java.util.logging.Logger;
-
+import ec.gob.firmadigital.servicio.model.Version;
+import ec.gob.firmadigital.servicio.util.PropertiesUtils;
+import ec.gob.firmadigital.libreria.utils.OsUtils;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -27,25 +28,17 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.constraints.NotNull;
 
-import ec.gob.firmadigital.servicio.model.Version;
-import ec.gob.firmadigital.servicio.util.PropertiesUtils;
-import ec.gob.firmadigital.libreria.utils.OsUtils;
-import jakarta.ejb.EJB;
-
 /**
  * Buscar en una lista de versiones. Esto permite tener el control de los
  * dispositivos que utilizan FirmaEC.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioVersion {
 
     @PersistenceContext
     private EntityManager em;
-
-    private static final Logger LOGGER = Logger.getLogger(ServicioVersion.class.getName());
 
     /**
      * Busca una versión, para ello se utiliza el sha con la versión 256
@@ -64,7 +57,6 @@ public class ServicioVersion {
             query.setParameter("sistema_operativo", OsUtils.getNameOs(sistemaOperativo));
             query.setParameter("aplicacion", aplicacion);
             query.setParameter("version", versionApp);
-//            query.setParameter("sha", sha);
             Version version = query.getSingleResult();
             if (version.getStatus()) {
                 retorno = "Version enabled";

@@ -16,8 +16,8 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.model.ApiUrl;
 import java.util.logging.Logger;
-
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -25,8 +25,6 @@ import jakarta.persistence.NonUniqueResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.constraints.NotNull;
-
-import ec.gob.firmadigital.servicio.model.ApiUrl;
 import jakarta.ejb.EJB;
 import java.util.logging.Level;
 
@@ -35,7 +33,7 @@ import java.util.logging.Level;
  * federar la utilización de FirmaEC sobre otra infraestructura, consultando en
  * una lista de servidores permitidos.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioApiUrl {

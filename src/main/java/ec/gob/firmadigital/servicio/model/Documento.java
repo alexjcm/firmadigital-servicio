@@ -25,7 +25,7 @@ import jakarta.persistence.Id;
 /**
  * Representa un documento recibido para ser procesado en el sistema.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 public class Documento implements Serializable {

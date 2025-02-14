@@ -30,7 +30,7 @@ import javax.sql.DataSource;
 /**
  * Servicio para consultar los CRLs.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioConsultaCrl {
@@ -42,9 +42,7 @@ public class ServicioConsultaCrl {
 
     public boolean isRevocado(BigInteger serial) {
         try (Connection conn = ds.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT serial FROM crl WHERE serial=?")) {
-
             ps.setString(1, serial.toString());
-
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
@@ -56,16 +54,12 @@ public class ServicioConsultaCrl {
 
     public String fechaRevocado(BigInteger serial) {
         try (Connection conn = ds.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT fecharevocacion FROM crl WHERE serial=?")) {
-
             ps.setString(1, serial.toString());
-
             try (ResultSet rs = ps.executeQuery()) {
                 String fecharevocacion = null;
-
                 while (rs.next()) {
                     fecharevocacion = rs.getString("fecharevocacion");
                 }
-
                 return fecharevocacion;
             }
         } catch (SQLException e) {

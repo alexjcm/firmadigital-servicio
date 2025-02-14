@@ -16,6 +16,16 @@
  */
 package ec.gob.firmadigital.servicio.rest;
 
+import ec.gob.firmadigital.servicio.CedulaInvalidaException;
+import ec.gob.firmadigital.servicio.CertificadoRevocadoException;
+import ec.gob.firmadigital.servicio.DocumentoNoExisteException;
+import ec.gob.firmadigital.servicio.ServicioDocumento;
+import ec.gob.firmadigital.servicio.ServicioLog;
+import ec.gob.firmadigital.servicio.ServicioSistemaTransversal;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import java.io.StringReader;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.json.Json;
@@ -44,24 +53,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import ec.gob.firmadigital.servicio.CedulaInvalidaException;
-import ec.gob.firmadigital.servicio.CertificadoRevocadoException;
-import ec.gob.firmadigital.servicio.DocumentoNoExisteException;
-import ec.gob.firmadigital.servicio.ServicioDocumento;
-import ec.gob.firmadigital.servicio.ServicioLog;
-import ec.gob.firmadigital.servicio.ServicioSistemaTransversal;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
-import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import jakarta.ws.rs.FormParam;
 
 /**
  * Servicio REST para almacenar, actualizar y obtener documentos desde los
  * sistemas transversales y comunicarse con aplicación firmadigital-api
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 @Path("/documentos")
@@ -96,20 +94,16 @@ public class ServicioDocumentoRest {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public Response crearDocumentos(@HeaderParam(API_KEY_HEADER_PARAMETER) String apiKey, String jsonParameter) {
-
         if (apiKey == null) {
             System.out.println("Se debe incluir un API Key!");
             return Response.status(Status.BAD_REQUEST).entity("Se debe incluir un API Key!").build();
         }
-
         if (jsonParameter == null || jsonParameter.isEmpty()) {
             System.out.println("Se debe incluir JSON!");
             return Response.status(Status.BAD_REQUEST).entity("Se debe incluir JSON!").build();
         }
-
         JsonReader jsonReader = Json.createReader(new StringReader(jsonParameter));
         JsonObject json;
-
         try {
             json = (JsonObject) jsonReader.read();
         } catch (JsonParsingException e) {
@@ -117,10 +111,8 @@ public class ServicioDocumentoRest {
             return Response.status(Status.BAD_REQUEST).entity(getClass().getSimpleName() + "::Error al decodificar JSON: \"" + e.getMessage() + "\"")
                     .build();
         }
-
         String cedula;
         String sistema;
-
         try {
             cedula = json.getString("cedula");
         } catch (NullPointerException e) {
@@ -128,7 +120,6 @@ public class ServicioDocumentoRest {
             return Response.status(Status.BAD_REQUEST).entity(getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"cedula\"")
                     .build();
         }
-
         try {
             sistema = json.getString("sistema");
         } catch (NullPointerException e) {
@@ -136,22 +127,18 @@ public class ServicioDocumentoRest {
             return Response.status(Status.BAD_REQUEST).entity(getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistema\"")
                     .build();
         }
-
         // Verificar API KEY
         if (!servicioSistemaTransversal.verificarApiKey(sistema, apiKey)) {
             System.out.println("Error al validar API_KEY para el sistema: " + sistema);
             LOGGER.log(Level.SEVERE, "Error al validar API_KEY para el sistema {0}", sistema);
             return Response.status(Status.FORBIDDEN).entity("Error al validar API_KEY").build();
         }
-
         JsonArray array = json.getJsonArray("documentos");
-
         if (array == null) {
             System.out.println("Error al decodificar JSON: Se debe incluir \"documentos\"");
             return Response.status(Status.BAD_REQUEST)
                     .entity("Error al decodificar JSON: Se debe incluir \"documentos\"").build();
         }
-
         // Documentos a devolver
         Map<String, String> documentos = new HashMap<>();
 
@@ -160,11 +147,9 @@ public class ServicioDocumentoRest {
             String documento = documentoJson.getString("documento");
             documentos.put(nombre, documento);
         }
-
         try {
             // Crear un documento en el sistema, retorna un token JWT
             String token = servicioDocumento.crearDocumentos(cedula, sistema, documentos);
-
             // Retornar un token JWT
             return Response.status(Status.CREATED).entity(token).build();
         } catch (ServicioSistemaTransversalException e) {
@@ -189,7 +174,6 @@ public class ServicioDocumentoRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response obtenerDocumentos(@PathParam("token") String token) {
         Map<Long, String> documentos;
-
         try {
             documentos = servicioDocumento.obtenerDocumentos(token);
         } catch (TokenInvalidoException e) {
@@ -201,14 +185,11 @@ public class ServicioDocumentoRest {
             servicioLog.error("ServicioDocumentoRest::obtenerDocumentos", "Token expirado: " + token);
             return Response.status(Status.BAD_REQUEST).entity("Token expirado").build();
         }
-
         JsonArrayBuilder array = Json.createArrayBuilder();
-
         for (Long id : documentos.keySet()) {
             String documento = documentos.get(id);
             array.add(Json.createObjectBuilder().add("id", id).add("documento", documento));
         }
-
 //        System.out.println("array: "+array.build().toString());
 //        System.out.println("array: "+array.build().size());
 //        if (array.build().isEmpty()) {
@@ -216,7 +197,6 @@ public class ServicioDocumentoRest {
 //        }
         // La fecha actual en formato ISO-8601 (2017-08-27T17:54:43.562-05:00)
         String fechaHora = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-
         String json = Json.createObjectBuilder().add("fecha_hora", fechaHora).add("documentos", array).build()
                 .toString();
         return Response.ok(json).build();
@@ -230,28 +210,21 @@ public class ServicioDocumentoRest {
         try (JsonReader jsonReader = Json.createReader(new StringReader(json))) {
             jsonObject = jsonReader.readObject();
         }
-
         String cedulaJson = jsonObject.getString("cedula");
-
         if (cedulaJson == null || cedulaJson.isEmpty()) {
             System.out.println("ServicioDocumentoRest::actualizarDocumentos Cedula vacia");
             servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", "Cedula vacia");
             return Response.status(Status.BAD_REQUEST).entity("Cedula vacia").build();
         }
-
         List<JsonObject> array = jsonObject.getJsonArray("documentos").getValuesAs(JsonObject.class);
-
         if (array.size() == 0) {
             System.out.println("ServicioDocumentoRest::actualizarDocumentos No se encuentran documentos");
             servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", "No se encuentran documentos");
             return Response.status(Status.BAD_REQUEST).entity("No se encuentran documentos").build();
         }
-
         Map<Long, String> documentos = new HashMap<>();
-
         for (JsonObject documentoJson : array) {
             Integer id;
-
             try {
                 id = documentoJson.getInt("id");
             } catch (NullPointerException e) {
@@ -263,17 +236,13 @@ public class ServicioDocumentoRest {
                 servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", "id no es un int");
                 return Response.status(Status.BAD_REQUEST).entity("No se encuentra id").build();
             }
-
             String documento = documentoJson.getString("documento");
-
             if (documento == null || documento.isEmpty()) {
                 servicioLog.error("ServicioDocumentoRest::actualizarDocumentos", "No se encuentra documento");
                 return Response.status(Status.BAD_REQUEST).entity("No se encuentra documento").build();
             }
-
             documentos.put(id.longValue(), documento);
         }
-
         try {
             int documentosFirmados = servicioDocumento.actualizarDocumentos(token, documentos, cedulaJson, base64);
             JsonObject jsonResponse = Json.createObjectBuilder().add("documentos_recibidos", documentos.size())

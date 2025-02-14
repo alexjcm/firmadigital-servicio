@@ -18,12 +18,10 @@ package ec.gob.firmadigital.servicio;
 
 import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-
-import jakarta.ejb.Stateless;
-import jakarta.validation.constraints.NotNull;
-
 import ec.gob.firmadigital.servicio.token.TokenTimeout;
 import ec.gob.firmadigital.servicio.util.UtilsJson;
+import jakarta.ejb.Stateless;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ejb.EJB;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,11 +47,9 @@ public class ServicioJWT {
      * Se debe almacenar en el archivo de configuracion del servidor WildFly
      * (standalone.xml), asi:
      *
-     * <system-properties>
      * <property name="jwt.time" value= "XX" />
-     * </system-properties>
      *
-     * Nombre de la propiedad de sistema que contiene el servicio web (valor en 
+     * Nombre de la propiedad de sistema que contiene el servicio web (valor en
      * segundos)
      */
     private static final String JWT_TIME_SYSTEM_PROPERTY = "jwt.time";

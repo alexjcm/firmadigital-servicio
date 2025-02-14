@@ -15,6 +15,8 @@
  */
 package ec.gob.firmadigital.servicio.token;
 
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
 import java.util.Date;
 import java.util.Map;
 
@@ -22,7 +24,7 @@ import java.util.Map;
  * Servicio para gestionar tokens que permiten una comunicación confiable con
  * una aplicación externa.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public interface ServicioToken {
 

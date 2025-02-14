@@ -15,23 +15,22 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaMobileException;
+import ec.gob.firmadigital.servicio.model.SistemaMobile;
 import java.security.MessageDigest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.xml.bind.DatatypeConverter;
-import ec.gob.firmadigital.servicio.exception.ServicioSistemaMobileException;
-import ec.gob.firmadigital.servicio.model.SistemaMobile;
 
 /**
  * Servicio para invocar Web Services de los sistemas transaccionales, utilizado
  * para almacenar el documento ya firmado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioSistemaMobile {

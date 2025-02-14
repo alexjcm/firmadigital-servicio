@@ -15,6 +15,10 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.model.Sistema;
+import ec.gob.firmadigital.libreria.certificate.to.Certificado;
+import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.StringWriter;
@@ -25,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -45,15 +48,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import ec.gob.firmadigital.servicio.model.Sistema;
-import ec.gob.firmadigital.libreria.certificate.to.Certificado;
-import ec.gob.firmadigital.libreria.certificate.to.Documento;
-import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import jakarta.ws.rs.client.Client;
@@ -74,7 +71,7 @@ import javax.net.ssl.X509TrustManager;
  * Servicio para invocar Web Services de los sistemas transaccionales, utilizado
  * para almacenar el documento ya firmado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioSistemaTransversal {
@@ -264,14 +261,6 @@ public class ServicioSistemaTransversal {
      */
     public void almacenarDocumento(String usuario, String documento, String archivo, String datosFirmante, URL url) throws SistemaTransversalException {
         try {
-            //quitar produccion
-            try {
-                disableCertificateValidation();
-            } catch (Exception ex) {
-                Logger.getLogger(ServicioSistemaTransversal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            //quitar produccion
-
             MessageFactory factory = MessageFactory.newInstance();
             SOAPMessage soapMessage = factory.createMessage();
             SOAPBody body = soapMessage.getSOAPBody();
@@ -316,7 +305,6 @@ public class ServicioSistemaTransversal {
             }
         } catch (SOAPException e) {
             String mensaje = (String) e.getMessage();
-            //System.out.println("Exception Normal " + mensaje);
             if (mensaje != null) {
                 if (mensaje.contains("SOAP message could not be sent")) {
                     System.out.println("Mensaje SOAP no pudo ser enviado");
@@ -329,35 +317,6 @@ public class ServicioSistemaTransversal {
             throw new SistemaTransversalException("Error al invocar Web Service del sistema transversal", e);
         }
     }
-
-    //quitar produccion
-    private static void disableCertificateValidation() throws Exception {
-        // Configurar TrustManager que acepte todos los certificados
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }
-        };
-        // Inicializar el contexto SSL con el TrustManager personalizado
-        SSLContext sc = SSLContext.getInstance("TLS");
-        sc.init(null, trustAllCerts, new SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        // Configurar el hostname verifier para ignorar la validación de nombre de host
-        HttpsURLConnection.setDefaultHostnameVerifier((String hostname, SSLSession session) -> true // Acepta todos los nombres de host
-        );
-    }
-    //quitar produccion
 
     public boolean verificarApiKey(String nombre, String apiKey) {
         // Verificar si existe el Sistema

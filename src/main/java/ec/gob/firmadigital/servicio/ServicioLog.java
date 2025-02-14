@@ -15,20 +15,19 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.model.Log;
+import ec.gob.firmadigital.servicio.model.Log.Severidad;
 import jakarta.ejb.Stateful;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-import ec.gob.firmadigital.servicio.model.Log;
-import ec.gob.firmadigital.servicio.model.Log.Severidad;
-
 /**
  * Servicio para almacenar, actualizar y obtener documentos desde los sistemas
  * transversales y la aplicación en firmadigital-api
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateful
 public class ServicioLog {

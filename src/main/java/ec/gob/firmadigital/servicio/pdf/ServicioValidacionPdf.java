@@ -15,28 +15,6 @@
  */
 package ec.gob.firmadigital.servicio.pdf;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.SignatureException;
-import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.logging.Logger;
-
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-
 import ec.gob.firmadigital.servicio.CertificadoRevocadoException;
 import ec.gob.firmadigital.servicio.crl.ServicioConsultaCrl;
 import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
@@ -50,12 +28,32 @@ import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
 import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaException;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Utils;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.SignatureException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.logging.Level;
 
 /**
  * Servicio de verificacion de archivos PDF.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 @Path("/validacionpdf")

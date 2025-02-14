@@ -17,6 +17,7 @@
 package ec.gob.firmadigital.servicio.rest;
 
 import ec.gob.firmadigital.servicio.ApiUrlNoEncontradoException;
+import ec.gob.firmadigital.servicio.ServicioApiUrl;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.GET;
@@ -24,7 +25,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import ec.gob.firmadigital.servicio.ServicioApiUrl;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -38,7 +38,7 @@ import java.util.logging.Level;
 /**
  * Servicio REST para verificar si existe un API URL.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 @Path("/apiurl")
@@ -60,7 +60,6 @@ public class ServicioApiUrlRest {
         if (jsonParameter == null || jsonParameter.isEmpty()) {
             return "Se debe incluir JSON con los parámetros: sistema, fecha_desde y fecha_hasta";
         }
-
         jakarta.json.JsonObject json;
         try {
             JsonReader jsonReader = Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
@@ -68,10 +67,8 @@ public class ServicioApiUrlRest {
         } catch (JsonParsingException | UnsupportedEncodingException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: \"" + e.getMessage();
         }
-
         String sistema;
         String url;
-
         try {
             sistema = json.getString("sistema");
         } catch (NullPointerException e) {
@@ -82,7 +79,6 @@ public class ServicioApiUrlRest {
         } catch (NullPointerException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"url\"";
         }
-
         try {
             return servicioApiUrl.buscarPorUrl(sistema, url);
         } catch (ApiUrlNoEncontradoException e) {

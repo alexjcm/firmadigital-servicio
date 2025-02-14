@@ -1,6 +1,5 @@
 /*
  * Firma Digital: Servicio
- * Copyright 2017 Secretaría Nacional de la Administración Pública
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,13 +30,13 @@ import javax.crypto.SecretKey;
 
 import org.junit.Test;
 
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
 
 /**
  * Pruebas de unidad de ServicioTokenJwt.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class TestServicioTokenJwt {
 

@@ -13,28 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ec.gob.firmadigital.servicio.token;
+package ec.gob.firmadigital.servicio.exception;
 
 /**
- * Excepcion lanzada en caso de que el token haya expirado.
+ * Excepcion lanzada en caso de que el token no sea valido.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
-public class TokenExpiradoException extends Exception {
+public class TokenInvalidoException extends Exception {
 
-    public TokenExpiradoException() {
+    public TokenInvalidoException() {
         super();
     }
 
-    public TokenExpiradoException(String message) {
+    public TokenInvalidoException(String message) {
         super(message);
     }
 
-    public TokenExpiradoException(String message, Throwable cause) {
+    public TokenInvalidoException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public TokenExpiradoException(Throwable cause) {
+    public TokenInvalidoException(Throwable cause) {
         super(cause);
     }
 }

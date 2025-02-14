@@ -56,7 +56,6 @@ public class Propiedades {
         getVersion = json.getString("versionApp");
         String getSistemaOperativo;
         getSistemaOperativo = json.getString("sistemaOperativo");
-
         if (version != null) {
             properties.setProperty(BasePdfSigner.INFO_QR, "VALIDAR CON: www.firmadigital.gob.ec\n" + "Firmado digitalmente con FirmaEC mobile " + version + " " + getSistemaOperativo);
         } else {

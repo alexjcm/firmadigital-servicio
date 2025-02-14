@@ -16,9 +16,6 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
 import ec.gob.firmadigital.libreria.certificate.to.Certificado;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
@@ -27,6 +24,14 @@ import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import ec.gob.firmadigital.libreria.utils.Utils;
 import ec.gob.firmadigital.libreria.utils.UtilsCrlOcsp;
+import ec.gob.firmadigital.libreria.utils.Json;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.util.Pkcs12;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -35,13 +40,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
-import ec.gob.firmadigital.libreria.utils.Json;
-import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.util.Pkcs12;
 import jakarta.ejb.EJB;
-
 import jakarta.ejb.Stateless;
 import jakarta.validation.constraints.NotNull;
 import java.util.Base64;
@@ -72,12 +71,11 @@ public class ServicioTransversalValidarCertificadoDigital {
         boolean expirado = true, revocado = true;
 
         try {
-            String decodedPassword = new String(Base64.getDecoder().decode(password));
-
             // Validar JWT y obtener info
             servicioToken.parseToken(jwt);
 
             // Obtener keyStore
+            String decodedPassword = new String(Base64.getDecoder().decode(password));
             KeyStore keyStore = Pkcs12.getKeyStore(pkcs12, decodedPassword);
             String alias = Pkcs12.getAlias(keyStore);
 

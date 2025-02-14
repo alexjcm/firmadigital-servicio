@@ -19,7 +19,7 @@ package ec.gob.firmadigital.servicio;
  * Excepcion arrojada en caso de problemas al almacenar el documento en el
  * sistema transversal.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class SistemaTransversalException extends Exception {
 

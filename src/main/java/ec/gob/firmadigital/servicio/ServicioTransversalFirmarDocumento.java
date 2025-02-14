@@ -16,8 +16,7 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.crypto.BadPasswordException;
-import com.itextpdf.kernel.pdf.PdfReader;
+import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
 import ec.gob.firmadigital.servicio.util.Pkcs12;
@@ -36,10 +35,11 @@ import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
-import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import com.itextpdf.kernel.crypto.BadPasswordException;
+import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

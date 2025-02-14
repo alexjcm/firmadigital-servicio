@@ -16,7 +16,6 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.crypto.BadPasswordException;
 import ec.gob.firmadigital.servicio.util.FirmaDigital;
 import ec.gob.firmadigital.servicio.util.JsonProcessor;
 import ec.gob.firmadigital.servicio.util.Pkcs12;
@@ -27,6 +26,9 @@ import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaExcep
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
 import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.utils.X509CertificateUtils;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import com.itextpdf.kernel.crypto.BadPasswordException;
+import jakarta.ejb.EJB;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.security.InvalidKeyException;
@@ -40,6 +42,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.ejb.Stateless;
+import jakarta.json.JsonReader;
+import jakarta.json.stream.JsonParsingException;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.WebApplicationException;
@@ -50,17 +54,23 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Base64;
 
 /**
  * Buscar en una lista de URLs permitidos para utilizar como API. Esto permite
  * federar la utilización de FirmaEC sobre otra infraestructura, consultando en
  * una lista de servidores permitidos.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioAppFirmarDocumentoTransversal {
+
+    @EJB
+    private ServicioVersion servicioVersion;
 
     /**
      * Nombre de la propiedad de sistema que contiene el archivo de
@@ -90,41 +100,47 @@ public class ServicioAppFirmarDocumentoTransversal {
     private String cedula;
 
     public String firmarTransversal(@NotNull String pkcs12, @NotNull String password,
-            @NotNull String sistema, @NotNull String operacion, @NotNull String url,
+            @NotNull String sistema, @NotNull String operacion, String url,
             @NotNull String versionFirmaEC, String formatoDocumento, @NotNull String tokenJwt,
             String llx, String lly, String pagina, String tipoEstampado, String razon,
             boolean pre, boolean des, @NotNull String base64) throws Exception {
-        // Parametros opcionales
-        this.sistema = sistema;
-        this.versionFirmaEC = versionFirmaEC;
-        this.formatoDocumento = formatoDocumento;
-        this.llx = llx;
-        this.lly = lly;
-        this.tipoEstampado = tipoEstampado;
-        this.razon = razon;
-        this.pagina = pagina;
-        this.url = url;
-        this.pre = pre;
-        this.des = des;
-        this.base64 = base64;
-        ambiente();
-        System.out.println("restServiceUrl:  " + restServiceUrl);
-        //en caso de ser firma descentralizada
-        if (url != null) {
-            this.restServiceUrl = url;
-        }
-        Map<Long, byte[]> documentosFirmados;
-        try {
-            //bajar documentos a firmar
-            String json = bajarDocumentos(tokenJwt);
-            if (json != null) {
-                //firmando documentos descargados
-                documentosFirmados = firmarDocumentos(json, pkcs12, password);
-                // Actualizar documentos
-                actualizarDocumentos(tokenJwt, documentosFirmados, cedula);
+        // Validar Version
+        String version = buscarVersion(base64);
+        if (version.contains("Version enabled")) {
+            // Parametros opcionales
+            this.sistema = sistema;
+            this.versionFirmaEC = versionFirmaEC;
+            this.formatoDocumento = formatoDocumento;
+            this.llx = llx;
+            this.lly = lly;
+            this.tipoEstampado = tipoEstampado;
+            this.razon = razon;
+            this.pagina = pagina;
+            this.url = url;
+            this.pre = pre;
+            this.des = des;
+            this.base64 = base64;
+            ambiente();
+            //en caso de ser firma descentralizada
+            if (url != null) {
+                this.restServiceUrl = url;
             }
-        } finally {
-            return resultado;
+            Map<Long, byte[]> documentosFirmados;
+            try {
+                //bajar documentos a firmar
+                String json = bajarDocumentos(tokenJwt);
+                if (json != null) {
+                    //firmando documentos descargados
+                    String decodedPassword = new String(Base64.getDecoder().decode(password));
+                    documentosFirmados = firmarDocumentos(json, pkcs12, decodedPassword);
+                    // Actualizar documentos
+                    actualizarDocumentos(tokenJwt, documentosFirmados, cedula);
+                }
+            } finally {
+                return resultado;
+            }
+        } else {
+            return version;
         }
     }
 
@@ -265,5 +281,51 @@ public class ServicioAppFirmarDocumentoTransversal {
             }
         }
         return error;
+    }
+
+    private String buscarVersion(String base64) {
+        if (base64 == null || base64.isEmpty()) {
+            return "Se debe generar en Base64";
+        }
+        String jsonParameter;
+        try {
+            jsonParameter = new String(Base64.getDecoder().decode(base64));
+        } catch (IllegalArgumentException e) {
+            return getClass().getSimpleName() + "::Error al decodificar base64: \"" + e.getMessage();
+        }
+        if (jsonParameter == null || jsonParameter.isEmpty()) {
+            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion y versionApp";
+        }
+        jakarta.json.JsonObject json;
+        try {
+            JsonReader jsonReader = jakarta.json.Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
+            json = (jakarta.json.JsonObject) jsonReader.read();
+        } catch (JsonParsingException | UnsupportedEncodingException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
+        }
+
+        String sistemaOperativo;
+        String aplicacion;
+        String versionApp;
+        try {
+            sistemaOperativo = json.getString("sistemaOperativo");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaOperativo\"";
+        }
+        try {
+            aplicacion = json.getString("aplicacion");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"aplicacion\"";
+        }
+        try {
+            versionApp = json.getString("versionApp");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
+        }
+        try {
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
+        } catch (ServicioVersionException e) {
+            return "versión no encontrada";
+        }
     }
 }

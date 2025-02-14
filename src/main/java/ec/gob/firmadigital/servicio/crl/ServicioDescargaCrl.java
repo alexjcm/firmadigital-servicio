@@ -16,6 +16,8 @@
  */
 package ec.gob.firmadigital.servicio.crl;
 
+import ec.gob.firmadigital.libreria.crl.ServicioCRL;
+import ec.gob.firmadigital.libreria.utils.HttpClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -40,15 +42,13 @@ import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import javax.sql.DataSource;
-import ec.gob.firmadigital.libreria.crl.ServicioCRL;
-import ec.gob.firmadigital.libreria.utils.HttpClient;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Servicio para cargar los CRLs de las CAs soportadas en una tabla.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Singleton
 //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
@@ -75,7 +75,6 @@ public class ServicioDescargaCrl {
 //    //1 hora
 //    //@Schedule(minute = "0", hour = "*", persistent = false)
     //GRANJA DE SERVIDORES EN PRODUCCION - COMENTAR EVITAR DESCARGA CRL
-
     public void importarCrls() {
         LOGGER.info("Iniciando el proceso de descarga de CRL");
 

@@ -42,23 +42,18 @@ public class ServicioTransversalValidarCertificadoDigitalRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String validarCertificadoDigital(@FormParam("jwt") String jwt, @FormParam("pkcs12") String pkcs12, @FormParam("password") String password, @FormParam("base64") String base64) {
-
         if (jwt == null || jwt.isEmpty()) {
             return "Se debe incluir el parametro jwt";
         }
-        
         if (pkcs12 == null || pkcs12.isEmpty()) {
             return "Se debe incluir el parametro pkcs12";
         }
-
         if (password == null || password.isEmpty()) {
             return "Se debe incluir el parametro password";
         }
-        
         if (base64 == null || base64.isEmpty()) {
             return "Se debe incluir el parametro base64";
         }
         return servicioTransversalValidarCertificadoDigital.transversalValidarCertificadoDigital(jwt, pkcs12, password, base64);
     }
-
 }

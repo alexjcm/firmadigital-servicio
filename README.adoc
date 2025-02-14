@@ -28,7 +28,7 @@ $ sudo apt-get install openjdk-17-jdk
 
 === Maven
 
-Para compilar y empaquetar se utiliza http://maven.apache.org[Apache Maven].
+Para compilar y empaquetar se utiliza http://maven.apache.org[Apache Maven] versión 3.8.8.
 
 En _Microsoft Windows_ se debe descargar e instalar siguiendo las instrucciones de instalación de https://maven.apache.org/install.html[Apache Maven].
 
