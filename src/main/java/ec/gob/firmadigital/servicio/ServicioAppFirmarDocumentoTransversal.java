@@ -16,18 +16,24 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import ec.gob.firmadigital.servicio.util.FirmaDigital;
-import ec.gob.firmadigital.servicio.util.JsonProcessor;
-import ec.gob.firmadigital.servicio.util.Pkcs12;
-import ec.gob.firmadigital.servicio.util.Propiedades;
+import static ec.gob.firmadigital.libreria.utils.CheckPDF.checkPDF;
+import ec.gob.firmadigital.libreria.exceptions.XploitException;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.ConexionException;
 import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaException;
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
 import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.utils.X509CertificateUtils;
-import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import ec.gob.firmadigital.servicio.util.FirmaDigital;
+import ec.gob.firmadigital.servicio.util.JsonProcessor;
+import ec.gob.firmadigital.servicio.util.Pkcs12;
+import ec.gob.firmadigital.servicio.util.Propiedades;
 import com.itextpdf.kernel.crypto.BadPasswordException;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import ec.gob.firmadigital.libreria.model.Document;
+import ec.gob.firmadigital.libreria.model.InMemoryDocument;
 import jakarta.ejb.EJB;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -54,6 +60,7 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -177,12 +184,28 @@ public class ServicioAppFirmarDocumentoTransversal {
                     documentoFirmado = firmador.firmarXML(keyStore, alias, documento, password.toCharArray(), null, url, base64);
                 }
                 if ("pdf".equalsIgnoreCase(formatoDocumento)) {
-                    Properties properties = Propiedades.propiedades(versionFirmaEC, llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
-                    documentoFirmado = firmador.firmarPDF(keyStore, alias, documento, password.toCharArray(), properties, url, base64);
+                    Document document = new InMemoryDocument(documento);
+                    try (InputStream is = document.openStream()) {
+                        PdfReader pdfReader = new PdfReader(is);
+                        PdfDocument pdfDocument = new PdfDocument(pdfReader);
+                        String mensajeAnalisisDocumento = checkPDF(pdfDocument);
+                        if (mensajeAnalisisDocumento != null) {
+                            throw new XploitException(mensajeAnalisisDocumento);
+                        } else {
+                            Properties properties = Propiedades.propiedades(versionFirmaEC, llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
+                            documentoFirmado = firmador.firmarPDF(keyStore, alias, documento, password.toCharArray(), properties, url, base64);
+                        }
+                    } catch (XploitException xe) {
+                        throw new XploitException(xe.getMessage());
+                    }
                 }
             } catch (ConexionException ce) {
                 resultado = "Servidor FirmaEC: " + ce.getMessage();
                 throw ce;
+            } catch (XploitException xe) {
+                resultado = xe.getMessage();
+                LOGGER.log(Level.WARNING, "XploitException: {0}", resultado);
+                throw xe;
             } catch (BadPasswordException bpe) {
                 resultado = "Documento protegido con contraseña";
                 throw bpe;

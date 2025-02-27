@@ -16,7 +16,6 @@
  */
 package ec.gob.firmadigital.servicio.util;
 
-import com.itextpdf.kernel.crypto.BadPasswordException;
 import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.ConexionException;
 import ec.gob.firmadigital.libreria.exceptions.DocumentoException;
@@ -24,6 +23,8 @@ import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaExcep
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
 import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
+import ec.gob.firmadigital.libreria.exceptions.XploitException;
+import ec.gob.firmadigital.libreria.utils.X509CertificateUtils;
 import ec.gob.firmadigital.libreria.model.Document;
 import ec.gob.firmadigital.libreria.model.InMemoryDocument;
 import ec.gob.firmadigital.libreria.sign.DigestAlgorithm;
@@ -31,7 +32,7 @@ import ec.gob.firmadigital.libreria.sign.PrivateKeySigner;
 import ec.gob.firmadigital.libreria.sign.SignConstants;
 import ec.gob.firmadigital.libreria.sign.pdf.PadesBasicSigner;
 import ec.gob.firmadigital.libreria.sign.xades.XAdESSigner;
-import ec.gob.firmadigital.libreria.utils.X509CertificateUtils;
+import com.itextpdf.kernel.crypto.BadPasswordException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -77,6 +78,7 @@ public class FirmaDigital {
      * @throws
      * ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException
      * @throws ec.gob.firmadigital.libreria.exceptions.DocumentoException
+     * @throws ec.gob.firmadigital.libreria.exceptions.XploitException
      */
     public byte[] firmarPDF(KeyStore keyStore, String alias, byte[] docByteArry, char[] keyStorePassword, Properties properties, String api, String base64) throws
             BadPasswordException,
@@ -91,7 +93,8 @@ public class FirmaDigital {
             RubricaException,
             SignatureVerificationException,
             DocumentoException,
-            ConexionException {
+            ConexionException,
+            XploitException {
         byte[] signed = null;
         X509CertificateUtils x509CertificateUtils = new X509CertificateUtils();
         try {
@@ -106,8 +109,6 @@ public class FirmaDigital {
                     PadesBasicSigner pdfSigner = new PadesBasicSigner(signer);
                     // Firmar el documento
                     signed = pdfSigner.sign(is, key, certChain, properties);
-                } catch (com.itextpdf.io.IOException ioe) {
-                    throw new DocumentoException("El archivo no es PDF");
                 }
             } else {
                 throw new CertificadoInvalidoException(x509CertificateUtils.getError());
@@ -115,9 +116,9 @@ public class FirmaDigital {
             if (x509CertificateUtils.getError() != null) {
                 throw new SignatureVerificationException(x509CertificateUtils.getError());
             }
-        } catch (IOException ioe) {
+        } catch (com.itextpdf.io.IOException ioe) {
             throw new DocumentoException("El archivo no es PDF");
-        } catch (DocumentoException de) {
+        } catch (IOException ioe) {
             throw new DocumentoException("El archivo no es PDF");
         } catch (SignatureVerificationException sve) {
             throw new SignatureVerificationException(x509CertificateUtils.getError());

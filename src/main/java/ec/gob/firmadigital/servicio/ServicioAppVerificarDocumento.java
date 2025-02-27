@@ -16,17 +16,20 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import static ec.gob.firmadigital.libreria.utils.CheckPDF.checkPDF;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
-import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import ec.gob.firmadigital.libreria.exceptions.XploitException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
-import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
-import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.EJB;
@@ -40,6 +43,8 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -54,6 +59,8 @@ public class ServicioAppVerificarDocumento {
     @EJB
     private ServicioVersion servicioVersion;
 
+    private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioAppVerificarDocumento.class.getName());
+
     /**
      * appVerificarDocumento
      *
@@ -64,21 +71,29 @@ public class ServicioAppVerificarDocumento {
     public String appVerificarDocumento(@NotNull String jwt, @NotNull String base64Documento, @NotNull String base64) {
         String retorno = null;
         Documento documento = null;
+        byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
         try {
             // Validar JWT
             servicioToken.parseToken(jwt);
-
             // Validar Version
             String version = buscarVersion(base64);
-            System.out.println("version: " + "|" + version + "|");
             if (version.contains("Version enabled")) {
-                byte[] byteDocumento = java.util.Base64.getDecoder().decode(base64Documento);
-                InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
-                PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-                Signer signer = new BasePdfSigner();
-                java.util.List<SignInfo> signInfos;
-                signInfos = signer.getSigners(byteDocumento);
-                documento = pdfToDocumento(pdfReader, signInfos);
+                String mensajeAnalisisDocumento;
+                try (InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento); PdfReader pdfReader = new PdfReader(inputStreamDocumento); PdfDocument pdfDocument = new PdfDocument(pdfReader)) {
+                    mensajeAnalisisDocumento = checkPDF(pdfDocument);
+                }
+                if (mensajeAnalisisDocumento != null) {
+                    LOGGER.log(Level.WARNING, "XploitException: {0}", mensajeAnalisisDocumento);
+                    throw new XploitException(mensajeAnalisisDocumento);
+                } else {
+                    try (InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento); PdfReader pdfReader = new PdfReader(inputStreamDocumento)) {
+                        Signer signer = new BasePdfSigner();
+                        java.util.List<SignInfo> signInfos;
+                        signInfos = signer.getSigners(byteDocumento);
+                        documento = pdfToDocumento(pdfReader, signInfos);
+                    }
+                }
+
             } else {
                 retorno = version;
             }

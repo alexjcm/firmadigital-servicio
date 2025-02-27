@@ -16,13 +16,11 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import static ec.gob.firmadigital.libreria.utils.CheckPDF.checkPDF;
 import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
-import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
-import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
-import ec.gob.firmadigital.servicio.util.Pkcs12;
-import ec.gob.firmadigital.servicio.util.FirmaDigital;
-import ec.gob.firmadigital.servicio.util.Propiedades;
-import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import ec.gob.firmadigital.libreria.exceptions.XploitException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.ConexionException;
 import ec.gob.firmadigital.libreria.exceptions.DocumentoException;
@@ -30,15 +28,22 @@ import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaExcep
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
 import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
+import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
+import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
+import ec.gob.firmadigital.servicio.util.Pkcs12;
+import ec.gob.firmadigital.servicio.util.FirmaDigital;
+import ec.gob.firmadigital.servicio.util.Propiedades;
+import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
 import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.libreria.model.Document;
+import ec.gob.firmadigital.libreria.model.InMemoryDocument;
 import com.itextpdf.kernel.crypto.BadPasswordException;
+import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
@@ -108,14 +113,30 @@ public class ServicioTransversalFirmarDocumento {
                 byteDocumentoSigned = firmador.firmarXML(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), null, null, base64);
             }
             if ("pdf".equalsIgnoreCase(formatoDocumento)) {
-                Properties properties = Propiedades.propiedades(llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
-                byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), properties, null, base64);
+                Document document = new InMemoryDocument(byteDocumento);
+                try (InputStream is = document.openStream()) {
+                    PdfReader pdfReader = new PdfReader(is);
+                    PdfDocument pdfDocument = new PdfDocument(pdfReader);
+                    String mensajeAnalisisDocumento = checkPDF(pdfDocument);
+                    if (mensajeAnalisisDocumento != null) {
+                        throw new XploitException(mensajeAnalisisDocumento);
+                    } else {
+                        Properties properties = Propiedades.propiedades(llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
+                        byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), properties, null, base64);
+                    }
+                } catch (XploitException xe) {
+                    throw new XploitException(xe.getMessage());
+                }
             }
         } catch (TokenInvalidoException ex) {
             retorno = "JWT Inválido";
             return retorno;
         } catch (TokenExpiradoException ex) {
             retorno = "JWT expirado";
+            return retorno;
+        } catch (XploitException xe) {
+            retorno = xe.getMessage();
+            LOGGER.log(Level.WARNING, "XploitException: {0}", retorno);
             return retorno;
         } catch (BadPasswordException bpe) {
             retorno = "Documento protegido con contraseña";
