@@ -93,7 +93,6 @@ public class ServicioAppVerificarDocumento {
                         documento = pdfToDocumento(pdfReader, signInfos);
                     }
                 }
-
             } else {
                 retorno = version;
             }
