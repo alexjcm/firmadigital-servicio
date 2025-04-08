@@ -9,7 +9,7 @@
 
     <name>firmadigital-servicio</name>
     <description>Servicio de Firma Digital</description>
-    <url>http://www.firmadigital.gob.ec</url>
+    <url>https://www.firmadigital.gob.ec</url>
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
@@ -22,7 +22,7 @@
             <name>Ricardo Arguello</name>
             <email>ricardo.arguello@soportelibre.com</email>
             <organization>Soporte Libre</organization>
-            <organizationUrl>http://www.soportelibre.com</organizationUrl>
+            <organizationUrl>https://www.soportelibre.com</organizationUrl>
         </developer>
         <developer>
             <name>Misael Fernández Correa</name>

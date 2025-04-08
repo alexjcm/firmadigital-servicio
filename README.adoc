@@ -28,7 +28,7 @@ $ sudo apt-get install openjdk-17-jdk
 
 === Maven
 
-Para compilar y empaquetar se utiliza http://maven.apache.org[Apache Maven] versión 3.8.8.
+Para compilar y empaquetar se utiliza https://maven.apache.org[Apache Maven] versión 3.8.8.
 
 En _Microsoft Windows_ se debe descargar e instalar siguiendo las instrucciones de instalación de https://maven.apache.org/install.html[Apache Maven].
 
@@ -48,7 +48,7 @@ $ sudo apt-get install maven
 
 === NetBeans
 
-Se utilizó como entorno de desarrollo el IDE http://netbeans.org[Netbeans].
+Se utilizó como entorno de desarrollo el IDE https://netbeans.org[Netbeans].
 
 == Dependencias
 
@@ -123,7 +123,7 @@ Usamos https://minka.gob.ec/mintel/ge/estandares/-/blob/master/versionamiento.md
 
 == Autores
 
-* *Ricardo Arguello* - *Desarrollo* - http://www.soportelibre.com[Soporte Libre]
+* *Ricardo Arguello* - *Desarrollo* - https://www.soportelibre.com[Soporte Libre]
 * *Misael Fernández* - *Desarrollo* - misael.fernandez.correa@gmail.com
 * *Diana Pujol* - *Deeper* - deeperdigitalec@outlook.es
 

@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import ec.gob.firmadigital.servicio.ServicioAppFirmarDocumentoTransversal;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class JsonProcessor {
      */
     private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 
-    private static final Logger LOGGER = Logger.getLogger(ServicioAppFirmarDocumentoTransversal.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JsonProcessor.class.getName());
 
     /**
      * Transforma una cadena de texto JSON con documentos en Base 64 en un Map
