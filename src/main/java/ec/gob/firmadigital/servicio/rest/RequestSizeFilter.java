@@ -64,7 +64,7 @@ public class RequestSizeFilter implements ContainerRequestFilter {
             }
         }
         int maxRequestSize = (System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) != null
-                ? Integer.parseInt(System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) : 51200;//KB
+                ? Integer.parseInt(System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) : 512000;//KB
         long contentLength = requestContext.getLength();
         if (requestContext.getMethod().equals("POST")
                 && contentLength > (maxRequestSize * 1024)) {//KB to BYTE
