@@ -69,7 +69,7 @@ Se utilizó el servidor de aplicación https://www.wildfly.org/downloads/[Wildfl
 
 == Desplegar
 
-Para desplegar el proyecto _firmadigital-servicio_, se debe utilizar el servidor de aplicación Wildfly desde la versión 29 (cambio de jee8 a jakarta 10).
+Para desplegar el proyecto _firmadigital-servicio_, se debe utilizar el servidor de aplicación Wildfly desde la versión 35.
 
 Se debe copiar el archivo `target/servicio.war` a la carpeta `standalone/deploy` de un servidor de aplicaciones WildFly
 
