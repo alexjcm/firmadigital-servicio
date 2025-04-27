@@ -14,16 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ec.gob.firmadigital.servicio.exception;
 
 /**
  * Excepcion lanzada en caso de problemas en el servicio.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
-
 public class ServicioSistemaTransversalException extends Exception {
 
     public ServicioSistemaTransversalException() {

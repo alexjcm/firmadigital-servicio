@@ -16,14 +16,11 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.crypto.BadPasswordException;
-import com.itextpdf.kernel.pdf.PdfReader;
-import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
-import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
-import ec.gob.firmadigital.servicio.util.Pkcs12;
-import ec.gob.firmadigital.servicio.util.FirmaDigital;
-import ec.gob.firmadigital.servicio.util.Propiedades;
-import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import static ec.gob.firmadigital.libreria.utils.CheckPDF.checkPDF;
+import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
+import ec.gob.firmadigital.libreria.exceptions.XploitException;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
 import ec.gob.firmadigital.libreria.exceptions.ConexionException;
 import ec.gob.firmadigital.libreria.exceptions.DocumentoException;
@@ -31,15 +28,23 @@ import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaExcep
 import ec.gob.firmadigital.libreria.exceptions.HoraServidorException;
 import ec.gob.firmadigital.libreria.exceptions.RubricaException;
 import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
+import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
+import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
+import ec.gob.firmadigital.servicio.util.Pkcs12;
+import ec.gob.firmadigital.servicio.util.FirmaDigital;
+import ec.gob.firmadigital.servicio.util.Propiedades;
+import ec.gob.firmadigital.libreria.certificate.to.Documento;
 import ec.gob.firmadigital.libreria.sign.SignInfo;
 import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import ec.gob.firmadigital.libreria.utils.Json;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
-import static ec.gob.firmadigital.libreria.utils.Utils.pdfToDocumento;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
+import ec.gob.firmadigital.libreria.model.Document;
+import ec.gob.firmadigital.libreria.model.InMemoryDocument;
+import com.itextpdf.kernel.crypto.BadPasswordException;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
 import jakarta.ejb.EJB;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -77,7 +82,7 @@ public class ServicioTransversalFirmarDocumento {
     @EJB
     private ServicioToken servicioToken;
 
-    private static final Logger logger = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioTransversalFirmarDocumento.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ec.gob.firmadigital.servicio.ServicioTransversalFirmarDocumento.class.getName());
 
     public String transversalFirmarDocumento(@NotNull String jwt, @NotNull String pkcs12, @NotNull String password,
             @NotNull String documentoBase64, String formatoDocumento,
@@ -108,14 +113,30 @@ public class ServicioTransversalFirmarDocumento {
                 byteDocumentoSigned = firmador.firmarXML(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), null, null, base64);
             }
             if ("pdf".equalsIgnoreCase(formatoDocumento)) {
-                Properties properties = Propiedades.propiedades(llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
-                byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), properties, null, base64);
+                Document document = new InMemoryDocument(byteDocumento);
+                try (InputStream is = document.openStream()) {
+                    PdfReader pdfReader = new PdfReader(is);
+                    PdfDocument pdfDocument = new PdfDocument(pdfReader);
+                    String mensajeAnalisisDocumento = checkPDF(pdfDocument);
+                    if (mensajeAnalisisDocumento != null) {
+                        throw new XploitException(mensajeAnalisisDocumento);
+                    } else {
+                        Properties properties = Propiedades.propiedades(llx, lly, pagina, tipoEstampado, razon, null, fechaHora, base64);
+                        byteDocumentoSigned = firmador.firmarPDF(keyStore, alias, byteDocumento, decodedPassword.toCharArray(), properties, null, base64);
+                    }
+                } catch (XploitException xe) {
+                    throw new XploitException(xe.getMessage());
+                }
             }
         } catch (TokenInvalidoException ex) {
             retorno = "JWT Inválido";
             return retorno;
         } catch (TokenExpiradoException ex) {
             retorno = "JWT expirado";
+            return retorno;
+        } catch (XploitException xe) {
+            retorno = xe.getMessage();
+            LOGGER.log(Level.WARNING, "XploitException: {0}", retorno);
             return retorno;
         } catch (BadPasswordException bpe) {
             retorno = "Documento protegido con contraseña";
@@ -154,7 +175,7 @@ public class ServicioTransversalFirmarDocumento {
                 //Verificar Documento
                 InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumentoSigned);
                 PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-                Signer signer = new PDFSignerItext();
+                Signer signer = new BasePdfSigner();
                 java.util.List<SignInfo> signInfos;
                 signInfos = signer.getSigners(byteDocumentoSigned);
                 documento = pdfToDocumento(pdfReader, signInfos);
@@ -174,7 +195,7 @@ public class ServicioTransversalFirmarDocumento {
         String json = Json.generarJsonDocumentoFirmadoTransversal(byteDocumentoSigned, documento);
         if (documento.getError() == null) {
             String nombreSistema = sistemaTransversal;
-            logger.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), Integer.valueOf(byteDocumentoSigned.length)});
+            LOGGER.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, hashMD5(datosUsuario.getCedula()), obtenerSO(base64), byteDocumentoSigned.length});
             this.servicioLog.info("ServicioAppFirmarDocumento::firmarDocumento", "Documento enviado al sistema " + nombreSistema + ", firmado por "
                     + hashMD5(datosUsuario.getCedula()) + ", sistema operativo "
                     + obtenerSO(base64) + ", tamano documento (bytes) " + byteDocumentoSigned.length);

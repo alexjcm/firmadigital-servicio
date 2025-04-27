@@ -15,22 +15,22 @@
  */
 package ec.gob.firmadigital.servicio.token.jwt;
 
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.util.Base64Util;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
-
-import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
-import ec.gob.firmadigital.servicio.util.Base64Util;
+import jakarta.ejb.Lock;
+import jakarta.ejb.LockType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -41,8 +41,6 @@ import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.impl.crypto.MacProvider;
-import jakarta.ejb.Lock;
-import jakarta.ejb.LockType;
 
 /**
  * Servicio para trabajar con tokens tipo JWT (https://jwt.io).
@@ -57,7 +55,7 @@ import jakarta.ejb.LockType;
  *   </system-properties>
  * </pre>
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Singleton
 @Startup
@@ -86,21 +84,18 @@ public class ServicioTokenJwt implements ServicioToken {
     public void init() {
         LOGGER.info("Inicializando llave secreta para tokens JWT...");
         String keyBase64 = System.getProperty(KEY_SYSTEM_PROPERTY);
-
         if (keyBase64 != null) {
             LOGGER.info("Se encontro la propiedad de sistema \"jwt.key\"");
-
             try {
                 // Cargar la llave secreta
                 this.secretKey = decodificarLlaveSecreta(keyBase64);
                 LOGGER.info("Se creo una llave secreta a partir de la propiedad de sistema \"jwt.key\"");
                 return;
-            } catch (Throwable e) {
+            } catch (Base64InvalidoException e) {
                 LOGGER.log(Level.SEVERE,
                         "ERROR: No se pudo crear una llave secreta a partir de la propiedad \"jwt.key\"", e);
             }
         }
-
         // Llave secreta autogenerada
         this.secretKey = generarLlaveSecreta();
         LOGGER.info("Se creo una llave secreta autogenerada");

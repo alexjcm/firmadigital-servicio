@@ -20,7 +20,7 @@ import java.util.Date;
 /**
  * Timeout para un token.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class TokenTimeout {
 
@@ -40,7 +40,7 @@ public class TokenTimeout {
         long time = date.getTime() + (seconds * 1000);
         return new Date(time);
     }
-    
+
     /**
      * Agregar una cantidad de minutos a una hora dada.
      *

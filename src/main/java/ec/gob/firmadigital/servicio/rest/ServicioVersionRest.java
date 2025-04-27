@@ -17,12 +17,15 @@
 package ec.gob.firmadigital.servicio.rest;
 
 import ec.gob.firmadigital.servicio.ServicioVersion;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.POST;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -30,15 +33,11 @@ import java.util.Base64;
 import jakarta.json.Json;
 import jakarta.json.JsonReader;
 import jakarta.json.stream.JsonParsingException;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.POST;
 
 /**
  * Servicio REST para verificar Versión.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 @Path("/version")
@@ -54,7 +53,6 @@ public class ServicioVersionRest {
         if (base64 == null || base64.isEmpty()) {
             return "Se debe generar en Base64";
         }
-//        logger.info("base64=" + base64);
         String jsonParameter;
         try {
             jsonParameter = new String(Base64.getDecoder().decode(base64));
@@ -63,7 +61,7 @@ public class ServicioVersionRest {
         }
 
         if (jsonParameter == null || jsonParameter.isEmpty()) {
-            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion,versionApp y sha";
+            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion y versionApp";
         }
 
         jakarta.json.JsonObject json;
@@ -77,7 +75,6 @@ public class ServicioVersionRest {
         String sistemaOperativo;
         String aplicacion;
         String versionApp;
-        String sha;
 
         try {
             sistemaOperativo = json.getString("sistemaOperativo");
@@ -94,14 +91,9 @@ public class ServicioVersionRest {
         } catch (NullPointerException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
         }
-        try {
-            sha = json.getString("sha");
-        } catch (NullPointerException e) {
-            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sha\"";
-        }
 
         try {
-            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp, sha);
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
         } catch (ServicioVersionException e) {
             return "versión no encontrada";
         }

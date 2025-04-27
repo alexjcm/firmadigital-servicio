@@ -16,9 +16,6 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import ec.gob.firmadigital.libreria.certificate.CertEcUtils;
 import ec.gob.firmadigital.libreria.certificate.to.Certificado;
 import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
@@ -31,6 +28,14 @@ import ec.gob.firmadigital.libreria.keystore.KeyStoreUtilities;
 import ec.gob.firmadigital.libreria.utils.TiempoUtils;
 import ec.gob.firmadigital.libreria.utils.Utils;
 import ec.gob.firmadigital.libreria.utils.UtilsCrlOcsp;
+import ec.gob.firmadigital.libreria.utils.Json;
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,78 +48,101 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import ec.gob.firmadigital.libreria.utils.Json;
-
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.json.JsonReader;
+import jakarta.json.stream.JsonParsingException;
 import jakarta.validation.constraints.NotNull;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 /**
  * Buscar en una lista de URLs permitidos para utilizar como API. Esto permite
  * federar la utilización de FirmaEC sobre otra infraestructura, consultando en
  * una lista de servidores permitidos.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioAppValidarCertificadoDigital {
 
+    @EJB
+    private ServicioToken servicioToken;
+
+    @EJB
+    private ServicioVersion servicioVersion;
+
     /**
-     * Busca un ApiUrl por URL.
+     * appValidarCertificadoDigital
      *
+     * @param jwt
      * @param pkcs12
      * @param password
      * @param base64
      * @return json
      */
-    public String appValidarCertificadoDigital(@NotNull String pkcs12, @NotNull String password, @NotNull String base64) {
+    public String appValidarCertificadoDigital(@NotNull String jwt,
+            @NotNull String pkcs12, @NotNull String password, @NotNull String base64) {
         Certificado certificado = null;
         String retorno = null;
-        boolean caducado = true, revocado = true;
-
+        boolean expirado = true, revocado = true;
         try {
-            byte encodedPkcs12[] = Base64.getDecoder().decode(pkcs12);
-            InputStream inputStreamPkcs12 = new ByteArrayInputStream(encodedPkcs12);
+            // Validar JWT y obtener info
+            servicioToken.parseToken(jwt);
 
-            KeyStoreProvider ksp = new FileKeyStoreProvider(inputStreamPkcs12);
-            KeyStore keyStore;
-            keyStore = ksp.getKeystore(password.toCharArray());
+            // Validar Version
+            String version = buscarVersion(base64);
+            if (version.contains("Version enabled")) {
+                byte encodedPkcs12[] = Base64.getDecoder().decode(pkcs12);
+                InputStream inputStreamPkcs12 = new ByteArrayInputStream(encodedPkcs12);
 
-            List<Alias> signingAliases = KeyStoreUtilities.getSigningAliases(keyStore);
-            String alias = signingAliases.get(0).getAlias();
+                // Obtener keyStore
+                KeyStoreProvider ksp = new FileKeyStoreProvider(inputStreamPkcs12);
+                String decodedPassword = new String(Base64.getDecoder().decode(password));
+                KeyStore keyStore = ksp.getKeystore(decodedPassword.toCharArray());
+                List<Alias> signingAliases = KeyStoreUtilities.getSigningAliases(keyStore);
+                String alias = signingAliases.get(0).getAlias();
 
-            X509Certificate x509Certificate = (X509Certificate) keyStore.getCertificate(alias);
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-            TemporalAccessor accessor = dateTimeFormatter.parse(TiempoUtils.getFechaHoraServidor(null, base64));
-            Date fechaHoraISO = Date.from(Instant.from(accessor));
-            //Validad certificado revocado
-            //Date fechaRevocado = fechaString_Date("2022-06-01 10:00:16");
-            Date fechaRevocado = UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null);
-            if (fechaRevocado != null && fechaRevocado.compareTo(fechaHoraISO) <= 0) {
-                retorno = "Certificado revocado: " + fechaRevocado;
-                revocado = true;
+                X509Certificate x509Certificate = (X509Certificate) keyStore.getCertificate(alias);
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+                TemporalAccessor accessor = dateTimeFormatter.parse(TiempoUtils.getFechaHoraServidor(null, base64));
+                Date fechaHoraISO = Date.from(Instant.from(accessor));
+                //Validad certificado revocado
+                Date fechaRevocado = UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null);
+                if (fechaRevocado != null && fechaRevocado.compareTo(fechaHoraISO) <= 0) {
+                    retorno = "Certificado revocado: " + fechaRevocado;
+                    revocado = true;
+                } else {
+                    revocado = false;
+                }
+                if (fechaHoraISO.compareTo(x509Certificate.getNotBefore()) <= 0 || fechaHoraISO.compareTo(x509Certificate.getNotAfter()) >= 0) {
+                    retorno = "Certificado expirado";
+                    expirado = true;
+                } else {
+                    expirado = false;
+                }
+                DatosUsuario datosUsuario = CertEcUtils.getDatosUsuarios(x509Certificate);
+                certificado = new Certificado(
+                        x509Certificate.getSerialNumber().toString(),
+                        Util.getCN(x509Certificate),
+                        CertEcUtils.getNombreCA(x509Certificate),
+                        Utils.dateToCalendar(x509Certificate.getNotBefore()),
+                        Utils.dateToCalendar(x509Certificate.getNotAfter()),
+                        null,
+                        Utils.dateToCalendar(UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null)),
+                        expirado,
+                        datosUsuario);
+                certificado.setKeyUsages(Utils.validacionKeyUsages(x509Certificate));
             } else {
-                revocado = false;
+                retorno = version;
             }
-            //if (fechaHoraISO.compareTo(x509Certificate.getNotBefore()) <= 0 || fechaHoraISO.compareTo(fechaString_Date("2022-06-21 10:00:16")) >= 0) {
-            if (fechaHoraISO.compareTo(x509Certificate.getNotBefore()) <= 0 || fechaHoraISO.compareTo(x509Certificate.getNotAfter()) >= 0) {
-                retorno = "Certificado caducado";
-                caducado = true;
-            } else {
-                caducado = false;
-            }
-            DatosUsuario datosUsuario = CertEcUtils.getDatosUsuarios(x509Certificate);
-            certificado = new Certificado(
-                    Util.getCN(x509Certificate),
-                    CertEcUtils.getNombreCA(x509Certificate),
-                    Utils.dateToCalendar(x509Certificate.getNotBefore()),
-                    Utils.dateToCalendar(x509Certificate.getNotAfter()),
-                    null,
-                    //Utils.dateToCalendar(fechaString_Date("2022-06-01 10:00:16")),
-                    Utils.dateToCalendar(UtilsCrlOcsp.validarFechaRevocado(x509Certificate, null)),
-                    caducado,
-                    datosUsuario);
-            certificado.setKeyUsages(Utils.validacionKeyUsages(x509Certificate));
+        } catch (TokenInvalidoException ex) {
+            retorno = "JWT Inválido";
+            return retorno;
+        } catch (TokenExpiradoException ex) {
+            retorno = "JWT expirado";
+            return retorno;
         } catch (KeyStoreException kse) {
             if (kse.getCause().toString().contains("Invalid keystore format")) {
                 retorno = "Certificado digital es inválido.";
@@ -130,7 +158,7 @@ public class ServicioAppValidarCertificadoDigital {
             boolean signValidate = true;
             if (certificado != null) {
                 //TODO reparar al verificar un certificado no encontrado
-                if (revocado || certificado.getValidated() || !certificado.getDatosUsuario().isCertificadoDigitalValido()) {
+                if (revocado || certificado.getCertificateValidated() || !certificado.getDatosUsuario().isCertificadoDigitalValido()) {
                     signValidate = false;
                 } else {
                     signValidate = true;
@@ -150,6 +178,52 @@ public class ServicioAppValidarCertificadoDigital {
             JsonArray jsonArray = new JsonArray();
             jsonArray.add(jsonObject);
             return jsonArray.toString();
+        }
+    }
+
+    private String buscarVersion(String base64) {
+        if (base64 == null || base64.isEmpty()) {
+            return "Se debe generar en Base64";
+        }
+        String jsonParameter;
+        try {
+            jsonParameter = new String(Base64.getDecoder().decode(base64));
+        } catch (IllegalArgumentException e) {
+            return getClass().getSimpleName() + "::Error al decodificar base64: \"" + e.getMessage();
+        }
+        if (jsonParameter == null || jsonParameter.isEmpty()) {
+            return "Se debe incluir JSON con los parámetros: sistemaOperativo, aplicacion y versionApp";
+        }
+        jakarta.json.JsonObject json;
+        try {
+            JsonReader jsonReader = jakarta.json.Json.createReader(new StringReader(URLDecoder.decode(jsonParameter, "UTF-8")));
+            json = (jakarta.json.JsonObject) jsonReader.read();
+        } catch (JsonParsingException | UnsupportedEncodingException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: " + e.getMessage();
+        }
+
+        String sistemaOperativo;
+        String aplicacion;
+        String versionApp;
+        try {
+            sistemaOperativo = json.getString("sistemaOperativo");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"sistemaOperativo\"";
+        }
+        try {
+            aplicacion = json.getString("aplicacion");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"aplicacion\"";
+        }
+        try {
+            versionApp = json.getString("versionApp");
+        } catch (NullPointerException e) {
+            return getClass().getSimpleName() + "::Error al decodificar JSON: Se debe incluir \"versionApp\"";
+        }
+        try {
+            return servicioVersion.validarVersion(sistemaOperativo, aplicacion, versionApp);
+        } catch (ServicioVersionException e) {
+            return "versión no encontrada";
         }
     }
 }

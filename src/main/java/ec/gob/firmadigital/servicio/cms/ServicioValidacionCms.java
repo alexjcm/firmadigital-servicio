@@ -17,6 +17,13 @@ package ec.gob.firmadigital.servicio.cms;
 
 import java.util.List;
 
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.util.Base64Util;
+import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
+import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
+import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaException;
+import ec.gob.firmadigital.libreria.sign.cms.VerificadorCMS;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import jakarta.ejb.Stateless;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
@@ -28,21 +35,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
-import ec.gob.firmadigital.servicio.util.Base64Util;
-import ec.gob.firmadigital.libreria.exceptions.SignatureVerificationException;
-import ec.gob.firmadigital.libreria.certificate.to.DatosUsuario;
-import ec.gob.firmadigital.libreria.exceptions.EntidadCertificadoraNoValidaException;
-import ec.gob.firmadigital.libreria.sign.cms.VerificadorCMS;
-import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Servicio de validacion de archivos CMS (P7M).
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 @Path("/validacioncms")
@@ -74,7 +73,6 @@ public class ServicioValidacionCms {
 
             // FIXME
             List<DatosUsuario> listaDatosUsuario = verificador.listaDatosUsuario;
-
             for (DatosUsuario datosUsuario : listaDatosUsuario) {
                 JsonObjectBuilder builder = Json.createObjectBuilder();
                 builder.add("nombre", datosUsuario.getNombre());

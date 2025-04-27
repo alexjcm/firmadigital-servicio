@@ -27,12 +27,10 @@ import jakarta.persistence.NamedQuery;
 /**
  * Representa un sistema transversal.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Entity
 @NamedQuery(name = "Version.validarVersion", query = "SELECT v FROM Version v WHERE v.version= :version AND v.sistemaOperativo= :sistema_operativo AND v.aplicacion= :aplicacion")
-//@NamedQuery(name = "Version.validarVersion", query = "SELECT v FROM Version v WHERE v.version= :version AND v.sistemaOperativo= :sistema_operativo AND v.sha = :sha")
 
 public class Version implements Serializable {
 
@@ -43,7 +41,6 @@ public class Version implements Serializable {
     private String sistemaOperativo;
     private String aplicacion;
     private String version;
-    private String sha;
     private Boolean status;
     private String descripcion;
     private Date fechaLiberacion;
@@ -81,14 +78,6 @@ public class Version implements Serializable {
         this.version = version;
     }
 
-    public String getSha() {
-        return sha;
-    }
-
-    public void setSha(String sha) {
-        this.sha = sha;
-    }
-
     public Boolean getStatus() {
         return status;
     }
@@ -123,6 +112,6 @@ public class Version implements Serializable {
 
     @Override
     public String toString() {
-        return "Version{" + "id=" + id + ", sistemaOperativo=" + sistemaOperativo + ", aplicacion=" + aplicacion + ", version=" + version + ", sha=" + sha + ", status=" + status + ", descripcion=" + descripcion + ", fechaLiberacion=" + fechaLiberacion + ", fechaObsoleto=" + fechaObsoleto + '}';
+        return "Version{" + "id=" + id + ", sistemaOperativo=" + sistemaOperativo + ", aplicacion=" + aplicacion + ", version=" + version + ", status=" + status + ", descripcion=" + descripcion + ", fechaLiberacion=" + fechaLiberacion + ", fechaObsoleto=" + fechaObsoleto + '}';
     }
 }

@@ -4,12 +4,12 @@
 
     <groupId>ec.gob.firmadigital</groupId>
     <artifactId>servicio</artifactId>
-    <version>3.1.2-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>firmadigital-servicio</name>
     <description>Servicio de Firma Digital</description>
-    <url>http://www.firmadigital.gob.ec</url>
+    <url>https://www.firmadigital.gob.ec</url>
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
@@ -22,7 +22,7 @@
             <name>Ricardo Arguello</name>
             <email>ricardo.arguello@soportelibre.com</email>
             <organization>Soporte Libre</organization>
-            <organizationUrl>http://www.soportelibre.com</organizationUrl>
+            <organizationUrl>https://www.soportelibre.com</organizationUrl>
         </developer>
         <developer>
             <name>Misael Fernández Correa</name>
@@ -40,6 +40,9 @@
     </scm>
 
     <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <jakartaee>10.0.0</jakartaee>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -49,7 +52,7 @@
         <dependency>
             <groupId>ec.gob.firmadigital</groupId>
             <artifactId>libreria</artifactId>
-            <version>3.1.2-SNAPSHOT</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <!--consumo de servicios web-->
         <dependency>
@@ -59,10 +62,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.spec.javax.xml.bind</groupId>
-            <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-            <version>2.0.1.Final</version>
-            <type>jar</type>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+            <version>2.1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
         </dependency>
         <!--SOAP Quipux-->
         <dependency>
@@ -73,7 +80,7 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3</version>
             <scope>runtime</scope>
         </dependency>
         <!--SOAP Quipux-->
@@ -91,7 +98,7 @@
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
-            <version>2.9.2</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -107,7 +114,7 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>4.2.0.Final</version>
+                <version>5.1.1.Final</version>
                 <configuration>
                     <id>local-wildfly</id>
                     <hostname>localhost</hostname>

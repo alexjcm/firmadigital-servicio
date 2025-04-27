@@ -13,32 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ec.gob.firmadigital.servicio;
-
-import jakarta.ejb.ApplicationException;
+package ec.gob.firmadigital.servicio.exception;
 
 /**
- * Excepcion arrojada en caso de problemas al almacenar el documento en el
- * sistema transversal.
+ * Excepcion lanzada en caso de que el token no sea valido.
  *
  * @author Ricardo Arguello
  */
-@ApplicationException(rollback = true)
-public class DocumentoNoExisteException extends Exception {
+public class TokenInvalidoException extends Exception {
 
-    public DocumentoNoExisteException() {
+    public TokenInvalidoException() {
         super();
     }
 
-    public DocumentoNoExisteException(String message) {
+    public TokenInvalidoException(String message) {
         super(message);
     }
 
-    public DocumentoNoExisteException(String message, Throwable cause) {
+    public TokenInvalidoException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public DocumentoNoExisteException(Throwable cause) {
+    public TokenInvalidoException(Throwable cause) {
         super(cause);
     }
 }

@@ -18,12 +18,10 @@ package ec.gob.firmadigital.servicio;
 
 import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import ec.gob.firmadigital.servicio.token.ServicioToken;
-
-import jakarta.ejb.Stateless;
-import jakarta.validation.constraints.NotNull;
-
 import ec.gob.firmadigital.servicio.token.TokenTimeout;
 import ec.gob.firmadigital.servicio.util.UtilsJson;
+import jakarta.ejb.Stateless;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ejb.EJB;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,7 +39,20 @@ public class ServicioJWT {
     private ServicioToken servicioToken;
 
     @EJB
-    private ServicioSistemaTransversal servicioSistemaTransversal;
+    private ServicioSistemaMobile servicioSistemaMobile;
+
+    /**
+     * Application Configuracion using System Properties.
+     *
+     * Se debe almacenar en el archivo de configuracion del servidor WildFly
+     * (standalone.xml), asi:
+     *
+     * <property name="jwt.time" value= "XX" />
+     *
+     * Nombre de la propiedad de sistema que contiene el servicio web (valor en
+     * segundos)
+     */
+    private static final String JWT_TIME_SYSTEM_PROPERTY = "jwt.time";
 
     /**
      * genera un token bajo el estándar JWT
@@ -53,22 +64,23 @@ public class ServicioJWT {
      * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public String getJWT(@NotNull String apiKey, @NotNull String sistemaTransversal) throws ServicioSistemaTransversalException {
-        if (servicioSistemaTransversal.verificarApiKey(sistemaTransversal, apiKey)) {
+        int jwtTime = (System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) != null ? Integer.parseInt(System.getProperty(JWT_TIME_SYSTEM_PROPERTY)) : 100;
+        if (servicioSistemaMobile.verificarApiKeyMobile(sistemaTransversal, apiKey)) {
             Map<String, Object> parametros = new HashMap<>();
             if (apiKey.equals(apiKey)) {
                 parametros.put("sistema", sistemaTransversal);
             }
             // Expiracion del Token
-            Date expiracion = TokenTimeout.addSeconds(new Date(), 5);//segundos
+            Date expiracion = TokenTimeout.addSeconds(new Date(), jwtTime);//segundos
             // Retorna el Token
             return UtilsJson.generarJsonResponse(
-                    200, 
-                    null, 
+                    200,
+                    null,
                     servicioToken.generarToken(parametros, expiracion));
         } else {
             return UtilsJson.generarJsonResponse(
-                    500, 
-                    "La información enviada no concuerda con la registrada en FirmaEC", 
+                    500,
+                    "La información enviada no concuerda con la registrada en FirmaEC Mobile",
                     null);
         }
     }

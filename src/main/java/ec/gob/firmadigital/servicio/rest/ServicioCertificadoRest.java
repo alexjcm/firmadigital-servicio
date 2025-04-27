@@ -15,8 +15,8 @@
  */
 package ec.gob.firmadigital.servicio.rest;
 
+import ec.gob.firmadigital.servicio.crl.ServicioConsultaCrl;
 import java.math.BigInteger;
-
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.GET;
@@ -25,12 +25,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import ec.gob.firmadigital.servicio.crl.ServicioConsultaCrl;
-
 /**
  * Este servicio permite verificar si un certificado está revocado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 @Path("/certificado")

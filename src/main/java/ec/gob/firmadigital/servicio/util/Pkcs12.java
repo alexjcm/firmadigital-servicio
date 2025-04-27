@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  *
- * @author mfernandez
+ * @author Misael Fernández
  */
 public class Pkcs12 {
 

@@ -28,11 +28,10 @@ import jakarta.ws.rs.core.MediaType;
 /**
  * REST Web Service
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Path("/appverificardocumento")
-public class ServicioAppVerificarDocumentoRest {
+public class ServicioAppVerificarDocumentoRest extends RequestSizeFilter {
 
     @EJB
     private ServicioAppVerificarDocumento servicioAppVerificarDocumento;
@@ -40,13 +39,17 @@ public class ServicioAppVerificarDocumentoRest {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String validarDocumento(@FormParam("documento") String documento, @FormParam("base64") String base64) throws Exception {
+    public String validarDocumento(@FormParam("jwt") String jwt,
+            @FormParam("documento") String documento, @FormParam("base64") String base64) throws Exception {
+        if (jwt == null || jwt.isEmpty()) {
+            return "Se debe incluir el parametro jwt";
+        }
         if (documento == null || documento.isEmpty()) {
             return "Se debe incluir el parametro documento";
         }
         if (base64 == null || base64.isEmpty()) {
             return "Se debe incluir el parametro base64";
         }
-        return servicioAppVerificarDocumento.verificarDocumento(documento, base64);
+        return servicioAppVerificarDocumento.appVerificarDocumento(jwt, documento, base64);
     }
 }

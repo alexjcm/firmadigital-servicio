@@ -16,7 +16,6 @@
 package ec.gob.firmadigital.servicio.model;
 
 import java.io.Serializable;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,36 +23,30 @@ import jakarta.persistence.Id;
 import jakarta.persistence.NamedQuery;
 
 /**
- * Representa el URL de un servidor API provisto por un tercero.
+ * Representa un sistema mobile.
  *
- * @author Ricardo Arguello
+ * @author Misael Fernández
  */
 @Entity
-@NamedQuery(name = "ApiUrl.findByUrl", query = "SELECT a FROM ApiUrl a WHERE lower(a.url) LIKE lower(:url)")
+@NamedQuery(name = "SistemaMobile.findByApiKey", query = "SELECT sm.apiKey FROM SistemaMobile sm WHERE lower(sm.nombre) LIKE lower(:nombre)")
 
-public class ApiUrl implements Serializable {
+public class SistemaMobile implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
     private String nombre;
-    @Column(name = "url", nullable = false, length = 300)
-    private String url;
-    private Boolean status;
+    private String descripcion;
+    private String apiKey;
 
-    public ApiUrl() {
+    public SistemaMobile() {
     }
 
-    public ApiUrl(String nombre, String url) {
-        this.nombre = nombre;
-        this.url = url;
-    }
-
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -65,24 +58,19 @@ public class ApiUrl implements Serializable {
         this.nombre = nombre;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDescripcion() {
+        return descripcion;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
-    public Boolean getStatus() {
-        return status;
+    public String getApiKey() {
+        return apiKey;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "ApiUrl[id=" + id + ", nombre=" + nombre + ", url=" + url + ", status=" + status + "]";
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 }

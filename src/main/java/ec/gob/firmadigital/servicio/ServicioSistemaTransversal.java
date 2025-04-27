@@ -15,6 +15,10 @@
  */
 package ec.gob.firmadigital.servicio;
 
+import ec.gob.firmadigital.servicio.model.Sistema;
+import ec.gob.firmadigital.libreria.certificate.to.Certificado;
+import ec.gob.firmadigital.libreria.certificate.to.Documento;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.StringWriter;
@@ -25,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -45,15 +48,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import ec.gob.firmadigital.servicio.model.Sistema;
-import ec.gob.firmadigital.libreria.certificate.to.Certificado;
-import ec.gob.firmadigital.libreria.certificate.to.Documento;
-import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import jakarta.ws.rs.client.Client;
@@ -67,7 +64,7 @@ import jakarta.ws.rs.core.Response;
  * Servicio para invocar Web Services de los sistemas transaccionales, utilizado
  * para almacenar el documento ya firmado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioSistemaTransversal {
@@ -79,14 +76,15 @@ public class ServicioSistemaTransversal {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
-    private static final Logger logger = Logger.getLogger(ServicioSistemaTransversal.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioSistemaTransversal.class.getName());
 
     /**
      * Buscar un sistema transversal.
      *
      * @param nombre
      * @return
-     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public Sistema buscarSistema(String nombre) throws ServicioSistemaTransversalException {
         try {
@@ -104,7 +102,8 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre nombre del sistema transversal
      * @return el URL del sistema traansversal
-     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      * @throws IllegalArgumentException si no se encuentra ese nombre de sistema
      * transversal
      */
@@ -123,7 +122,8 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre nombre del sistema transversal
      * @return el ApiKey del servicio REST
-     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public String buscarApiKey(String nombre) throws ServicioSistemaTransversalException {
         try {
@@ -140,7 +140,8 @@ public class ServicioSistemaTransversal {
      *
      * @param nombre nombre del sistema transversal
      * @return el ApiKeyRest del servicio REST
-     * @throws ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public String buscarApiKeyRest(String nombre) throws ServicioSistemaTransversalException {
         try {
@@ -176,29 +177,29 @@ public class ServicioSistemaTransversal {
                     jsonDoc.addProperty("integridadDocumento", documento.getDocValidate());
                     jsonDoc.addProperty("error", "null");
                     JsonArray arrayCer = new JsonArray();
-                    for (Certificado cert : documento.getCertificados()) {
+                    for (Certificado certificado : documento.getCertificados()) {
                         JsonObject jsonCer = new JsonObject();
-                        jsonCer.addProperty("emitidoPara", cert.getIssuedTo());
-                        jsonCer.addProperty("emitidoPor", cert.getIssuedBy());
-                        jsonCer.addProperty("validoDesde", calendarToString(cert.getValidFrom()));
-                        jsonCer.addProperty("validoHasta", calendarToString(cert.getValidTo()));
-                        jsonCer.addProperty("fechaFirma", calendarToString(cert.getGenerated()));
-                        jsonCer.addProperty("fechaRevocado", cert.getRevocated() != null ? calendarToString(cert.getRevocated()) : "");
-                        jsonCer.addProperty("certificadoVigente", cert.getValidated());
-                        jsonCer.addProperty("clavesUso", cert.getKeyUsages());
-                        jsonCer.addProperty("fechaSelloTiempo", cert.getDocTimeStamp() != null ? dateToString(cert.getDocTimeStamp()) : "");
-                        jsonCer.addProperty("integridadFirma", cert.getSignVerify());
-                        jsonCer.addProperty("razonFirma", cert.getDocReason() != null ? cert.getDocReason() : "");
-                        jsonCer.addProperty("localizacion", cert.getDocLocation() != null ? cert.getDocLocation() : "");
-                        jsonCer.addProperty("cedula", cert.getDatosUsuario().getCedula());
-                        jsonCer.addProperty("nombre", cert.getDatosUsuario().getNombre());
-                        jsonCer.addProperty("apellido", cert.getDatosUsuario().getApellido());
-                        jsonCer.addProperty("institucion", cert.getDatosUsuario().getInstitucion());
-                        jsonCer.addProperty("cargo", cert.getDatosUsuario().getCargo());
-                        jsonCer.addProperty("entidadCertificadora", cert.getDatosUsuario().getEntidadCertificadora());
-                        jsonCer.addProperty("serial", cert.getDatosUsuario().getSerial());
-                        jsonCer.addProperty("selladoTiempo", cert.getDatosUsuario().getSelladoTiempo());
-                        jsonCer.addProperty("certificadoDigitalValido", cert.getDatosUsuario().isCertificadoDigitalValido());
+                        jsonCer.addProperty("emitidoPara", certificado.getIssuedTo());
+                        jsonCer.addProperty("emitidoPor", certificado.getIssuedBy());
+                        jsonCer.addProperty("validoDesde", calendarToString(certificado.getValidFrom()));
+                        jsonCer.addProperty("validoHasta", calendarToString(certificado.getValidTo()));
+                        jsonCer.addProperty("fechaFirma", calendarToString(certificado.getSignGenerated()));
+                        jsonCer.addProperty("fechaRevocado", certificado.getRevocated() != null ? calendarToString(certificado.getRevocated()) : "");
+                        jsonCer.addProperty("certificadoVigente", certificado.getCertificateValidated());
+                        jsonCer.addProperty("clavesUso", certificado.getKeyUsages());
+                        jsonCer.addProperty("fechaSelloTiempo", certificado.getDocTimeStamp() != null ? dateToString(certificado.getDocTimeStamp()) : "");
+                        jsonCer.addProperty("integridadFirma", certificado.getSignVerify());
+                        jsonCer.addProperty("razonFirma", certificado.getDocReason() != null ? certificado.getDocReason() : "");
+                        jsonCer.addProperty("localizacion", certificado.getDocLocation() != null ? certificado.getDocLocation() : "");
+                        jsonCer.addProperty("cedula", certificado.getDatosUsuario().getCedula());
+                        jsonCer.addProperty("nombre", certificado.getDatosUsuario().getNombre());
+                        jsonCer.addProperty("apellido", certificado.getDatosUsuario().getApellido());
+                        jsonCer.addProperty("institucion", certificado.getDatosUsuario().getInstitucion());
+                        jsonCer.addProperty("cargo", certificado.getDatosUsuario().getCargo());
+                        jsonCer.addProperty("entidadCertificadora", certificado.getIssuedBy());
+                        jsonCer.addProperty("serial", certificado.getSerial());
+                        jsonCer.addProperty("selladoTiempo", certificado.getDocValidTimeStamp());
+                        jsonCer.addProperty("certificadoDigitalValido", certificado.getDatosUsuario().isCertificadoDigitalValido());
                         arrayCer.add(jsonCer);
                     }
                     jsonDoc.add("certificado", arrayCer);
@@ -280,31 +281,30 @@ public class ServicioSistemaTransversal {
             Node node = nl.item(0);
 
             if (node == null) {
-                logger.severe("Error al invocar el Web Service: " + convertToString(soapBody));
+                LOGGER.log(Level.SEVERE, "Error al invocar el Web Service: {0}", convertToString(soapBody));
                 throw new SistemaTransversalException("Error al invocar el Web Service");
             }
 
             // 0 is error, 1 ok
             String resultado = node.getTextContent();
-            logger.fine("Resultado enviado por el sistema transversal: " + resultado);
+            LOGGER.log(Level.FINE, "Resultado enviado por el sistema transversal: {0}", resultado);
 
-            if ("1".equals(resultado)) {
+            if (resultado.equals("1")) {
                 return;
-            } else if ("0".equals(resultado)) {
+            } else if (resultado.equals("0")) {
                 throw new SistemaTransversalException("Se devuelve error del sistema transversal: " + resultado);
             } else {
                 throw new SistemaTransversalException("Resultado invalido del sistema transversal: " + resultado);
             }
         } catch (SOAPException e) {
             String mensaje = (String) e.getMessage();
-            //System.out.println("Exception Normal " + mensaje);
             if (mensaje != null) {
                 if (mensaje.contains("SOAP message could not be sent")) {
                     System.out.println("Mensaje SOAP no pudo ser enviado");
                 }
             } else {
                 System.out.println("----------");
-                logger.log(Level.SEVERE, "Error al actualizar el documento en el sistema transversal", e);
+                LOGGER.log(Level.SEVERE, "Error al actualizar el documento en el sistema transversal", e);
                 System.out.println("----------");
             }
             throw new SistemaTransversalException("Error al invocar Web Service del sistema transversal", e);
@@ -318,21 +318,25 @@ public class ServicioSistemaTransversal {
         try {
             sistema = buscarSistema(nombre);
         } catch (ServicioSistemaTransversalException e) {
-            logger.severe("No existe el sistema: " + nombre);
+            LOGGER.log(Level.SEVERE, "No existe el sistema: {0}", nombre);
             return false;
         }
 
         String apiKeySistema = sistema.getApiKey().toUpperCase();
-        logger.fine("apiKeySistema=" + apiKey);
+        LOGGER.log(Level.FINE, "apiKeySistema={0}", apiKey);
 
-        // Si no tiene API Key
+        // Si no tiene API KEY
         if (apiKeySistema == null) {
-            logger.warning("API KEY is null, sistema=" + nombre);
+            LOGGER.log(Level.WARNING, "API KEY is null, sistema={0}", nombre);
             return false;
         }
 
-        String hash = hashSha256(apiKey).toUpperCase();
-        return apiKeySistema.equals(hash);
+        // Si no tiene problemas el API KEY
+        if (!apiKeySistema.equals(hashSha256(apiKey).toUpperCase())) {
+            LOGGER.log(Level.WARNING, "API KEY tiene problemas");
+            return false;
+        }
+        return true;
     }
 
     private String hashSha256(String apiKey) {

@@ -1,4 +1,6 @@
-/* 
+/*
+ * Firma Digital: Servicio
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -14,32 +16,16 @@
  */
 package ec.gob.firmadigital.servicio.util;
 
-import java.io.IOException;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  *
- * @author mfernandez
+ * @author Misael Fernández
  */
 public class PropertiesUtils {
 
-    private static final String CONFIG = "config.servicio.properties";
-    private static Properties config;
+    private static final String REQUEST_SIZE_SYSTEM_PROPERTY = "firmadigital-servicio.request.size";
 
-    public static Properties getConfig() {
-        config = new Properties();
-        try {
-            config.load(PropertiesUtils.class.getClassLoader().getResourceAsStream(CONFIG));
-        } catch (IOException ex) {
-            Logger.getLogger(PropertiesUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return config;
-    }
-
-    public static String getDocumentoKB() {
-        getConfig();
-        return config.getProperty("documentoKB");
+    public static int getDocumentoKB() {
+        return (System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) != null
+                ? Integer.parseInt(System.getProperty(REQUEST_SIZE_SYSTEM_PROPERTY)) : 512000;//KB
     }
 }
