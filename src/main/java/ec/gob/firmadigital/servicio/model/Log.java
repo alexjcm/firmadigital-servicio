@@ -26,7 +26,7 @@ import jakarta.persistence.Id;
 /**
  * Representa una entrada de log.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 public class Log implements Serializable {
@@ -37,8 +37,6 @@ public class Log implements Serializable {
     public enum Severidad {
         INFO, WARNING, ERROR
     }
-
-    private static final long serialVersionUID = -4149737307219333116L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

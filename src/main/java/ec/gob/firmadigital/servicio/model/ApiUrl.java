@@ -26,7 +26,7 @@ import jakarta.persistence.NamedQuery;
 /**
  * Representa el URL de un servidor API provisto por un tercero.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 @NamedQuery(name = "ApiUrl.findByUrl", query = "SELECT a FROM ApiUrl a WHERE lower(a.url) LIKE lower(:url)")

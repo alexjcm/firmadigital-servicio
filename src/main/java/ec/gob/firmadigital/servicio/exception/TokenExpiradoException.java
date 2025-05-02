@@ -1,6 +1,5 @@
 /*
  * Firma Digital: Servicio
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -14,25 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package ec.gob.firmadigital.servicio;
+package ec.gob.firmadigital.servicio.exception;
 
 /**
- * Excepcion lanzada en caso de problemas en la versión.
+ * Excepcion lanzada en caso de que el token haya expirado.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Ricardo Arguello
  */
+public class TokenExpiradoException extends Exception {
 
-public class VersionException extends Exception {
-
-    private static final long serialVersionUID = 5869629673463604058L;
-
-    public VersionException() {
+    public TokenExpiradoException() {
         super();
     }
 
-    public VersionException(String message) {
+    public TokenExpiradoException(String message) {
         super(message);
+    }
+
+    public TokenExpiradoException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public TokenExpiradoException(Throwable cause) {
+        super(cause);
     }
 }

@@ -1,18 +1,19 @@
-///*
-// * Firma Digital: Cliente
-// * This program is free software: you can redistribute it and/or modify
-// * it under the terms of the GNU General Public License as published by
-// * the Free Software Foundation, either version 3 of the License, or
-// * (at your option) any later version.
-// *
-// * This program is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
-// * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// * GNU General Public License for more details.
-// *
-// * You should have received a copy of the GNU General Public License
-// * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// */
+/*
+ * Firma Digital: Servicio
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package ec.gob.firmadigital.servicio.util;
 
 import com.google.gson.JsonArray;
@@ -22,6 +23,8 @@ import com.google.gson.JsonSyntaxException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JsonProcessor {
 
@@ -34,6 +37,8 @@ public class JsonProcessor {
      * Base 64 encoder
      */
     private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+
+    private static final Logger LOGGER = Logger.getLogger(JsonProcessor.class.getName());
 
     /**
      * Transforma una cadena de texto JSON con documentos en Base 64 en un Map
@@ -56,8 +61,8 @@ public class JsonProcessor {
                 String base64 = documentosBase64.get(id);
                 documentosDecoder.put(id, BASE64_DECODER.decode(base64));
             }
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
+        } catch (JsonSyntaxException jse) {
+            LOGGER.log(Level.SEVERE, "JsonSyntaxException: {0}", jse.getMessage());
         }
         return documentosDecoder;
     }

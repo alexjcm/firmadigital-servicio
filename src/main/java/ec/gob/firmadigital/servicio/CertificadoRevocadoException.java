@@ -18,11 +18,9 @@ package ec.gob.firmadigital.servicio;
 /**
  * Excepcion lanzada en caso de que el certificado esté revocado.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class CertificadoRevocadoException extends Exception {
-
-    private static final long serialVersionUID = 1093880787253700671L;
 
     public CertificadoRevocadoException() {
         super();

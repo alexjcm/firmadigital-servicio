@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.Application;
 /**
  * Configuración de la aplicacion REST
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @ApplicationPath("")
 public class JAXRSConfiguration extends Application {

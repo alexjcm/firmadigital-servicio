@@ -9,9 +9,9 @@ Los siguientes pasos le permitirán obtener una copia del proyecto para correrla
 
 === Pre-requisitos
 
-- JDK 11
+- JDK 17
 
-- WildFly 33.- Para desplegar la aplicación se necesita un servidor de aplicaciones *Jakarta EE 10* disponible en http://www.wildfly.org[wildfly.org]
+- WildFly 35.- Para desplegar la aplicación se necesita un servidor de aplicaciones disponible en http://www.wildfly.org[wildfly.org]
 
 - Maven 3.- Para compilar y empaquetar se utiliza http://maven.apache.org[Apache Maven].
 
@@ -47,6 +47,7 @@ Instalar Postgresql localmente.
 [source, bash]
 ----
 sudo wget https://jdbc.postgresql.org/download/postgresql-42.2.13.jar
+#https://jdbc.postgresql.org/download/postgresql-42.7.3.jar
 ----
 
 2. Generar una llave JWT ejecutando la clase `token/jwt/ServicioTokenJwt.java`, y el resultado

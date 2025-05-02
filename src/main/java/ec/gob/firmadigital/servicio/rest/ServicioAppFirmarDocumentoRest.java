@@ -16,10 +16,10 @@
  */
 package ec.gob.firmadigital.servicio.rest;
 
+import ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import ec.gob.firmadigital.servicio.ServicioAppFirmarDocumento;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ws.rs.Consumes;
@@ -32,12 +32,11 @@ import jakarta.ws.rs.core.MediaType;
 /**
  * REST Web Service
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 @Path("/appfirmardocumento")
-public class ServicioAppFirmarDocumentoRest {
+public class ServicioAppFirmarDocumentoRest extends RequestSizeFilter {
 
     @EJB
     private ServicioAppFirmarDocumento servicioAppFirmarDocumento;
@@ -45,32 +44,30 @@ public class ServicioAppFirmarDocumentoRest {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String firmarDocumento(@FormParam("pkcs12") String pkcs12, @FormParam("password") String password,
-        @FormParam("documento") String documento, @FormParam("json") String json, @FormParam("base64") String base64) throws Exception {
-
+    public String firmarDocumento(@FormParam("jwt") String jwt, @FormParam("pkcs12") String pkcs12,
+            @FormParam("password") String password, @FormParam("documento") String documento,
+            @FormParam("json") String json, @FormParam("base64") String base64) throws Exception {
+        if (jwt == null || jwt.isEmpty()) {
+            return "Se debe incluir el parametro jwt";
+        }
         if (pkcs12 == null || pkcs12.isEmpty()) {
             return "Se debe incluir el parametro pkcs12";
         }
-
         if (password == null || password.isEmpty()) {
             return "Se debe incluir el parametro password";
         }
-
         if (documento == null || documento.isEmpty()) {
             return "Se debe incluir el parametro documento";
         }
-
         if (json == null || json.isEmpty()) {
             return "Se debe incluir el parametro json";
         }
-
         JsonObject jsonObject;
         try {
             jsonObject = new JsonParser().parse(json).getAsJsonObject();
         } catch (JsonSyntaxException e) {
             return getClass().getSimpleName() + "::Error al decodificar JSON: \"" + e.getMessage();
         }
-
         String versionFirmaEC = null;
         String formatoDocumento = null;
         String llx = null;
@@ -78,61 +75,59 @@ public class ServicioAppFirmarDocumentoRest {
         String pagina = null;
         String tipoEstampado = null;
         String razon = null;
-
         try {
             versionFirmaEC = jsonObject.get("versionFirmaEC").getAsString();
         } catch (NullPointerException npe) {
             return "Error al decodificar JSON: Se debe incluir \"versionFirmaEC\"";
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"versionFirmaEC\"";
         }
         try {
             formatoDocumento = jsonObject.get("formatoDocumento").getAsString();
         } catch (NullPointerException npe) {
             formatoDocumento = "pdf";
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"formatoDocumento\"";
         }
         try {
             if (jsonObject.get("llx") != null) {
                 llx = jsonObject.get("llx").getAsString();
             }
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"llx\"";
         }
         try {
             if (jsonObject.get("lly") != null) {
                 lly = jsonObject.get("lly").getAsString();
             }
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"lly\"";
         }
         try {
             if (jsonObject.get("pagina") != null) {
                 pagina = jsonObject.get("pagina").getAsString();
             }
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"pagina\"";
         }
         try {
             if (jsonObject.get("tipoEstampado") != null) {
                 tipoEstampado = jsonObject.get("tipoEstampado").getAsString();
             }
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"tipoEstampado\"";
         }
         try {
             if (jsonObject.get("razon") != null) {
                 razon = jsonObject.get("razon").getAsString();
             }
-        } catch (ClassCastException cce) {
+        } catch (java.lang.UnsupportedOperationException | ClassCastException e) {
             return "Error al decodificar JSON: No coincide el tipo de dato \"razon\"";
         }
 
         if (base64 == null || base64.isEmpty()) {
             return "Se debe incluir el parametro base64";
         }
-
-        return servicioAppFirmarDocumento.firmarDocumento(pkcs12, password, documento, versionFirmaEC, formatoDocumento, llx, lly, pagina, tipoEstampado, razon, base64);
+        return servicioAppFirmarDocumento.firmarDocumento(jwt, pkcs12, password, documento, versionFirmaEC, formatoDocumento, llx, lly, pagina, tipoEstampado, razon, base64);
     }
 }

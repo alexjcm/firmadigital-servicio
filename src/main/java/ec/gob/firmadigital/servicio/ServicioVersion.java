@@ -16,8 +16,10 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import java.util.logging.Logger;
-
+import ec.gob.firmadigital.servicio.exception.ServicioVersionException;
+import ec.gob.firmadigital.servicio.model.Version;
+import ec.gob.firmadigital.servicio.util.PropertiesUtils;
+import ec.gob.firmadigital.libreria.utils.OsUtils;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -26,28 +28,17 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.constraints.NotNull;
 
-import ec.gob.firmadigital.servicio.model.Version;
-import ec.gob.firmadigital.servicio.util.PropertiesUtils;
-import ec.gob.firmadigital.libreria.utils.OsUtils;
-import jakarta.ejb.EJB;
-
 /**
  * Buscar en una lista de versiones. Esto permite tener el control de los
  * dispositivos que utilizan FirmaEC.
  *
- * @author Christian Espinosa <christian.espinosa@mintel.gob.ec>, Misael
- * Fernández
+ * @author Christian Espinosa, Misael Fernández
  */
 @Stateless
 public class ServicioVersion {
 
-    @EJB
-    private ServicioLog servicioLog;
-
     @PersistenceContext
     private EntityManager em;
-
-    private static final Logger logger = Logger.getLogger(ServicioVersion.class.getName());
 
     /**
      * Busca una versión, para ello se utiliza el sha con la versión 256
@@ -55,11 +46,10 @@ public class ServicioVersion {
      * @param sistemaOperativo
      * @param aplicacion
      * @param versionApp
-     * @param sha
      * @return
-     * @throws VersionException
+     * @throws ServicioVersionException
      */
-    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp, @NotNull String sha) throws VersionException {
+    public String validarVersion(@NotNull String sistemaOperativo, @NotNull String aplicacion, @NotNull String versionApp) throws ServicioVersionException {
         String retorno = "";
         com.google.gson.JsonObject gsonObject = null;
         try {
@@ -67,34 +57,20 @@ public class ServicioVersion {
             query.setParameter("sistema_operativo", OsUtils.getNameOs(sistemaOperativo));
             query.setParameter("aplicacion", aplicacion);
             query.setParameter("version", versionApp);
-//            query.setParameter("sha", sha);
             Version version = query.getSingleResult();
             if (version.getStatus()) {
                 retorno = "Version enabled";
-                servicioLog.info("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             } else {
                 retorno = "Version disabled";
-                servicioLog.warning("ServicioVersion::validarVersion",
-                    "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             }
         } catch (NoResultException e) {
             retorno = "Versión no encontrado";
-            logger.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (NonUniqueResultException e) {
             retorno = "Varias Versiones registradas";
-            logger.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } catch (java.lang.NullPointerException e) {
             retorno = "Revisar el estado de la URL registrada";
-            logger.severe(retorno);
-            servicioLog.error("ServicioVersion::validarVersion",
-                "sistemaOperativo " + sistemaOperativo + ", versionApp " + versionApp + ", sha" + sha + ", " + retorno);
             throw new ApiUrlNoEncontradoException(retorno);
         } finally {
             gsonObject = new com.google.gson.JsonObject();

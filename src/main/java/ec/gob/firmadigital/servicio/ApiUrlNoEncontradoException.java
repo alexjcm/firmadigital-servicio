@@ -14,17 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ec.gob.firmadigital.servicio;
 
 /**
  * Excepcion lanzada en caso de que no se encuentre un ApiUrl.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class ApiUrlNoEncontradoException extends Exception {
-
-    private static final long serialVersionUID = 5869629673463604058L;
 
     public ApiUrlNoEncontradoException() {
         super();

@@ -17,7 +17,6 @@ package ec.gob.firmadigital.servicio.model;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,12 +25,10 @@ import jakarta.persistence.Id;
 /**
  * Representa un documento recibido para ser procesado en el sistema.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Entity
 public class Documento implements Serializable {
-
-    private static final long serialVersionUID = -560645897559660865L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,6 +15,7 @@
  */
 package ec.gob.firmadigital.servicio.util;
 
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
@@ -22,7 +23,7 @@ import java.util.Base64.Encoder;
 /**
  * Clase utilitaria para procesar formato Base64.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class Base64Util {
 

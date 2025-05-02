@@ -15,9 +15,25 @@
  */
 package ec.gob.firmadigital.servicio;
 
-import com.itextpdf.kernel.pdf.PdfReader;
+import static ec.gob.firmadigital.servicio.token.TokenTimeout.DEFAULT_TIMEOUT;
 import static ec.gob.firmadigital.servicio.token.TokenTimeout.DEFAULT_TIMEOUT_HOURS;
-
+import ec.gob.firmadigital.servicio.model.Documento;
+import ec.gob.firmadigital.servicio.token.ServicioToken;
+import ec.gob.firmadigital.servicio.exception.TokenExpiradoException;
+import ec.gob.firmadigital.servicio.exception.TokenInvalidoException;
+import ec.gob.firmadigital.servicio.token.TokenTimeout;
+import ec.gob.firmadigital.servicio.exception.Base64InvalidoException;
+import ec.gob.firmadigital.servicio.util.FileUtil;
+import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
+import ec.gob.firmadigital.libreria.exceptions.DocumentoException;
+import ec.gob.firmadigital.libreria.exceptions.InvalidFormatException;
+import ec.gob.firmadigital.libreria.sign.SignInfo;
+import ec.gob.firmadigital.libreria.sign.Signer;
+import ec.gob.firmadigital.libreria.sign.pdf.BasePdfSigner;
+import ec.gob.firmadigital.libreria.sign.xades.XAdESSigner;
+import ec.gob.firmadigital.libreria.utils.Utils;
+import ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException;
+import com.itextpdf.kernel.pdf.PdfReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -34,21 +50,6 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.NotNull;
-import ec.gob.firmadigital.servicio.model.Documento;
-import ec.gob.firmadigital.servicio.token.ServicioToken;
-import ec.gob.firmadigital.servicio.token.TokenExpiradoException;
-import ec.gob.firmadigital.servicio.token.TokenInvalidoException;
-import ec.gob.firmadigital.servicio.token.TokenTimeout;
-import ec.gob.firmadigital.servicio.util.Base64InvalidoException;
-import ec.gob.firmadigital.servicio.util.FileUtil;
-import ec.gob.firmadigital.libreria.exceptions.CertificadoInvalidoException;
-import ec.gob.firmadigital.libreria.exceptions.DocumentoException;
-import ec.gob.firmadigital.libreria.exceptions.InvalidFormatException;
-import ec.gob.firmadigital.libreria.sign.SignInfo;
-import ec.gob.firmadigital.libreria.sign.Signer;
-import ec.gob.firmadigital.libreria.sign.pdf.PDFSignerItext;
-import ec.gob.firmadigital.libreria.sign.xades.XAdESSigner;
-import ec.gob.firmadigital.libreria.utils.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -60,7 +61,7 @@ import jakarta.json.JsonReader;
  * Servicio para almacenar, actualizar y obtener documentos desde los sistemas
  * transversales y la aplicación en firmadigital-api
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @Stateless
 public class ServicioDocumento {
@@ -77,7 +78,7 @@ public class ServicioDocumento {
     @PersistenceContext
     private EntityManager em;
 
-    private static final Logger logger = Logger.getLogger(ServicioDocumento.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServicioDocumento.class.getName());
 
     /**
      * Crea documentos en el sistema, para ser firmados por un cliente.
@@ -86,19 +87,21 @@ public class ServicioDocumento {
      * @param nombreSistema
      * @param archivos
      * @return
-     * @throws ec.gob.firmadigital.servicio.util.Base64InvalidoException
+     * @throws ec.gob.firmadigital.servicio.exception.Base64InvalidoException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public String crearDocumentos(@NotNull String cedula, @NotNull String nombreSistema,
-        @NotNull Map<String, String> archivos) throws Base64InvalidoException {
-
-        // Verificar si existe el sistema
-        servicioSistemaTransversal.buscarSistema(nombreSistema);
-
+            @NotNull Map<String, String> archivos) throws Base64InvalidoException, ServicioSistemaTransversalException {
+        try {
+            // Verificar si existe el sistema
+            servicioSistemaTransversal.buscarSistema(nombreSistema);
+        } catch (ServicioSistemaTransversalException e) {
+            throw new ServicioSistemaTransversalException("No se encuentra registrado el sistema");
+        }
         List<String> ids = new ArrayList<>();
-
         for (String nombre : archivos.keySet()) {
             String archivo = archivos.get(nombre);
-
             // Crear nuevo documento
             Documento documento = new Documento();
             documento.setCedula(cedula);
@@ -106,15 +109,11 @@ public class ServicioDocumento {
             documento.setFecha(new Date());
             documento.setSistema(nombreSistema);
             documento.setArchivo(decodificarBase64(archivo));
-
             // Almacenar
             em.persist(documento);
-            ;
-//            String cargo = "";
             // Agregar a la lista de Ids
             ids.add(documento.getId().toString());
         }
-
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("cedula", cedula);
         parametros.put("sistema", nombreSistema);
@@ -138,10 +137,9 @@ public class ServicioDocumento {
     public Map<Long, String> obtenerDocumentos(String token) throws TokenInvalidoException, TokenExpiradoException {
         Map<String, Object> parametros = servicioToken.parseToken(token);
         String ids = (String) parametros.get("ids");
-        logger.fine("ids=" + ids);
+        LOGGER.log(Level.FINE, "ids={0}", ids);
 
         Map<Long, String> archivos = new HashMap<>();
-
         for (String id : convertirEnList(ids)) {
             Long primaryKey = Long.parseLong(id);
             Documento documento = em.find(Documento.class, primaryKey);
@@ -151,7 +149,6 @@ public class ServicioDocumento {
                 archivos.put(primaryKey, archivo);
             }
         }
-
         return archivos;
     }
 
@@ -162,25 +159,25 @@ public class ServicioDocumento {
      * @param cedulaJson
      * @param base64
      * @return
-     * @throws ec.gob.firmadigital.servicio.token.TokenInvalidoException
+     * @throws ec.gob.firmadigital.servicio.exception.TokenInvalidoException
      * @throws ec.gob.firmadigital.servicio.CedulaInvalidaException
-     * @throws ec.gob.firmadigital.servicio.token.TokenExpiradoException
-     * @throws ec.gob.firmadigital.servicio.util.Base64InvalidoException
+     * @throws ec.gob.firmadigital.servicio.exception.TokenExpiradoException
+     * @throws ec.gob.firmadigital.servicio.exception.Base64InvalidoException
      * @throws ec.gob.firmadigital.servicio.CertificadoRevocadoException
      * @throws ec.gob.firmadigital.servicio.DocumentoNoExisteException
+     * @throws
+     * ec.gob.firmadigital.servicio.exception.ServicioSistemaTransversalException
      */
     public int actualizarDocumentos(String token, Map<Long, String> archivos, String cedulaJson, String base64)
-        throws TokenInvalidoException, CedulaInvalidaException, TokenExpiradoException, Base64InvalidoException,
-        CertificadoRevocadoException, DocumentoNoExisteException {
-
+            throws TokenInvalidoException, CedulaInvalidaException, TokenExpiradoException, Base64InvalidoException,
+            CertificadoRevocadoException, DocumentoNoExisteException, ServicioSistemaTransversalException {
         Map<String, Object> parametros = servicioToken.parseToken(token);
 
         String ids = (String) parametros.get("ids");
-        logger.info("ids=" + ids);
-
+        LOGGER.log(Level.INFO, "ids={0}", ids);
         String cedulaToken = (String) parametros.get("cedula");
-        logger.info("cedulaToken=" + FileUtil.hashMD5(cedulaToken));
-        logger.info("cedulaJson=" + FileUtil.hashMD5(cedulaJson));
+        LOGGER.log(Level.INFO, "cedulaToken={0}", FileUtil.hashMD5(cedulaToken));
+        LOGGER.log(Level.INFO, "cedulaJson={0}", FileUtil.hashMD5(cedulaJson));
 
         if (!cedulaToken.equals(cedulaJson)) {
             throw new CedulaInvalidaException("La cedula " + cedulaJson + " es incorrecta");
@@ -188,35 +185,29 @@ public class ServicioDocumento {
 
         String nombreSistema = (String) parametros.get("sistema");
         URL url = servicioSistemaTransversal.buscarUrlSistema(nombreSistema);
-        logger.info("sistema=" + nombreSistema);
+        LOGGER.log(Level.INFO, "sistema={0}", nombreSistema);
 
         List<String> idList = convertirEnList(ids);
-
         if (idList.size() != archivos.size()) {
             throw new IllegalArgumentException("El token contiene " + idList.size()
-                + " archivos por procesar pero se enviaron solo " + archivos.size() + " archivos!");
+                    + " archivos por procesar pero se enviaron solo " + archivos.size() + " archivos!");
         }
 
         int documentosFirmados = 0;
-
         for (String id : idList) {
             Long primaryKey = Long.parseLong(id);
             String archivoBase64 = archivos.get(primaryKey);
-
             if (archivoBase64 == null) {
                 throw new IllegalArgumentException(
-                    "El token contiene una lista de archivos distinta a los archivos solicitados para actualizar: "
+                        "El token contiene una lista de archivos distinta a los archivos solicitados para actualizar: "
                         + ids);
             }
-
             // Actualizar el archivo
             Documento documento = em.find(Documento.class, primaryKey);
-
             if (documento == null) {
-                logger.warning("El documento " + primaryKey + " no existe en la base de datos");
+                LOGGER.warning("El documento " + primaryKey + " no existe en la base de datos");
                 throw new DocumentoNoExisteException("El documento " + primaryKey + " no existe en la base de datos");
             }
-
             byte[] byteDocumento = java.util.Base64.getDecoder().decode(archivoBase64);
             java.util.List<SignInfo> signInfos;
 
@@ -231,11 +222,11 @@ public class ServicioDocumento {
                     if (mimeTypeRest.contains("pdf")) {
                         InputStream inputStreamDocumento = new ByteArrayInputStream(byteDocumento);
                         PdfReader pdfReader = new PdfReader(inputStreamDocumento);
-                        Signer signer = new PDFSignerItext();
+                        Signer signer = new BasePdfSigner();
                         signInfos = signer.getSigners(byteDocumento);
                         documentoTo = Utils.pdfToDocumento(pdfReader, signInfos);
                         datosFirmante = documentoTo.getCertificados().get(documentoTo.getCertificados().size() - 1).getDatosUsuario().getNombre()
-                            + documentoTo.getCertificados().get(documentoTo.getCertificados().size() - 1).getDatosUsuario().getApellido();
+                                + documentoTo.getCertificados().get(documentoTo.getCertificados().size() - 1).getDatosUsuario().getApellido();
                     }
                     if (mimeTypeRest.contains("xml")) {
                         datosFirmante = "";
@@ -252,29 +243,27 @@ public class ServicioDocumento {
                 String apiKeyRest = servicioSistemaTransversal.buscarApiKeyRest(nombreSistema);
                 if (apiKeyRest != null) {
                     servicioSistemaTransversal.almacenarDocumentoREST(documentoTo, documento.getCedula(), documento.getNombre(),
-                        archivoBase64, url, apiKeyRest);
+                            archivoBase64, url, apiKeyRest);
                 } else {
                     servicioSistemaTransversal.almacenarDocumento(documento.getCedula(), documento.getNombre(),
-                        archivoBase64, datosFirmante, url);
+                            archivoBase64, datosFirmante, url);
                 }
                 documentosFirmados++;
 
-                logger.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, FileUtil.hashMD5(cedulaToken), obtenerSO(base64), documento.getArchivo().length});
+                LOGGER.log(Level.INFO, "Documento enviado al sistema {0}, firmado por {1}, sistema operativo {2}, tamano documento (bytes) {3}", new Object[]{nombreSistema, FileUtil.hashMD5(cedulaToken), obtenerSO(base64), documento.getArchivo().length});
                 servicioLog.info("ServicioDocumento::actualizarDocumentos",
-                    "Documento enviado al sistema " + nombreSistema
+                        "Documento enviado al sistema " + nombreSistema
                         + ", firmado por " + FileUtil.hashMD5(cedulaToken)
                         + ", sistema operativo " + obtenerSO(base64)
                         + ", tamano documento (bytes) " + documento.getArchivo().length);
             } catch (SistemaTransversalException e) {
-                String mensajeError = "No se pudo enviar el documento al sistema " + nombreSistema;
+                String mensajeError = "No se pudo enviar el documento al sistema " + nombreSistema + "\nCausa: " + e.getLocalizedMessage();
                 servicioLog.error("ServicioDocumento::actualizarDocumentos", mensajeError);
-                logger.log(Level.SEVERE, mensajeError);
+                LOGGER.log(Level.SEVERE, mensajeError);
             }
-
             // Eliminar el documento
             em.remove(documento);
         }
-
         return documentosFirmados;
     }
 

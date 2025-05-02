@@ -20,11 +20,16 @@ import java.util.Date;
 /**
  * Timeout para un token.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class TokenTimeout {
 
-    /**
+	/**
+	 * Minutos antes de que el Token expire.
+	 */
+	public static final int DEFAULT_TIMEOUT = 5;
+
+	/**
      * Horas antes de que el Token expire. 336 horas == 2 semanas. También representa el número de
      * horas que pasan antes de que se eliminen los documentos que no han sido firmados de la BD por
      * n horas.
@@ -32,14 +37,38 @@ public class TokenTimeout {
     public static final int DEFAULT_TIMEOUT_HOURS = 336;
 
     /**
-     * Agregar una cantidad de horas a una hora dada.
+     * Agregar una cantidad de minutos a una hora dada.
      *
      * @param date
-     * @param hours
+     * @param seconds
      * @return
      */
-    public static Date addHours(Date date, int hours) {
-        long time = date.getTime() + (hours * 60 * 60 * 1000);
+    public static Date addSeconds(Date date, int seconds) {
+        long time = date.getTime() + (seconds * 1000);
         return new Date(time);
     }
+
+    /**
+     * Agregar una cantidad de minutos a una hora dada.
+     *
+     * @param date
+     * @param minutes
+     * @return
+     */
+    public static Date addMinutes(Date date, int minutes) {
+        long time = date.getTime() + (minutes * 60 * 1000);
+        return new Date(time);
+    }
+
+	/**
+	 * Agregar una cantidad de horas a una hora dada.
+	 *
+	 * @param date
+	 * @param hours
+	 * @return
+	 */
+	public static Date addHours(Date date, int hours) {
+		long time = date.getTime() + (hours * 60 * 60 * 1000);
+		return new Date(time);
+	}
 }

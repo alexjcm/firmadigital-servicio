@@ -19,11 +19,9 @@ package ec.gob.firmadigital.servicio;
  * Excepcion lanzada en caso de que la cedula que inicio el proceso en el
  * sistema transversal sea diferente a la cedula usada al firmar los docuentos.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 public class CedulaInvalidaException extends Exception {
-
-    private static final long serialVersionUID = 1093880787253700671L;
 
     public CedulaInvalidaException() {
         super();

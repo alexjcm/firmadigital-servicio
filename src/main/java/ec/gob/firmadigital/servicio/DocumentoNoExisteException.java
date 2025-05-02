@@ -21,12 +21,10 @@ import jakarta.ejb.ApplicationException;
  * Excepcion arrojada en caso de problemas al almacenar el documento en el
  * sistema transversal.
  *
- * @author Ricardo Arguello <ricardo.arguello@soportelibre.com>
+ * @author Ricardo Arguello
  */
 @ApplicationException(rollback = true)
 public class DocumentoNoExisteException extends Exception {
-
-    private static final long serialVersionUID = -7132855600223954519L;
 
     public DocumentoNoExisteException() {
         super();
